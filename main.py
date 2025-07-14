@@ -16,14 +16,17 @@ chat_history = {}
 usage_count = {}
 
 def get_groq_reply(user_id, user_input):
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    url = "https://api.groq.com/openai/v1/chat/completions"
+    try:
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        url = "https://api.groq.com/openai/v1/chat/completions"
 
-    # Add system prompt to make it human-like
-    history = [{"role": "system", "content": """
+        # ✅ System prompt
+        system_prompt = {
+            "role": "system",
+            "content": """
 You are Alexa – a fun, desi-style Indian chatbot who talks like a real human friend. 
 Always speak in Hindi (with light English mix). You always say "aap" to show respect, 
 but still sound chill and friendly. 
@@ -41,24 +44,39 @@ You're great at:
 - Giving short and sweet replies — not boring lectures!
 
 Every time someone messages, understand their emotion and reply accordingly like a real human would.
+"""
+        }
 
-"""}] + chat_history.get(user_id, [])
-    history.append({"role": "user", "content": user_input})
+        # ✅ Merge system + previous history
+        user_history = chat_history.get(user_id, [])
+        history = [system_prompt] + user_history + [{"role": "user", "content": user_input}]
 
-    data = {
-        "model": GROQ_MODEL,
-        "messages": history,
-        "temperature": 0.7
-    }
+        data = {
+            "model": GROQ_MODEL,
+            "messages": history,
+            "temperature": 0.7
+        }
 
-    res = requests.post(url, headers=headers, json=data)
-    response = res.json()["choices"][0]["message"]["content"]
+        # 🔁 API call
+        res = requests.post(url, headers=headers, json=data)
+        res.raise_for_status()  # Throws error if status_code not 200
 
-    history.append({"role": "assistant", "content": response})
-    chat_history[user_id] = history
-    usage_count[user_id] = usage_count.get(user_id, 0) + 1
+        response = res.json()["choices"][0]["message"]["content"]
 
-    return response
+        # ✅ Save response in memory
+        chat_history[user_id] = user_history + [{"role": "user", "content": user_input}, {"role": "assistant", "content": response}]
+        usage_count[user_id] = usage_count.get(user_id, 0) + 1
+
+        return response
+
+    except Exception as e:
+        # 🚨 Developer logs for error
+        print("🚨 ERROR while calling Groq API")
+        print("User ID:", user_id)
+        print("Input:", user_input)
+        print("System prompt:", system_prompt["content"][:100] + "...")
+        print("Exception:", str(e))
+        return "😔 Sorry, kuch galat ho gaya. Thoda der baad try karo."
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("👋 Hello! I'm your AI Assistant powered by Groq!")
