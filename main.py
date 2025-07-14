@@ -115,7 +115,8 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "- API: https://api.groq.com/openai/v1/chat/completions",
         parse_mode="Markdown"
     )
-    await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id, delay=120)
+    await asyncio.sleep(60)
+    await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id)
 
 from datetime import datetime
 
