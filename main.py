@@ -95,22 +95,18 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = f"@{user.username}" if user.username else "NoUsername"
     time_now = datetime.now().strftime("%I:%M %p")
 
-    # Show " Typing..."
-    thinking = await update.message.reply_text(" Typing...")
+    thinking = await update.message.reply_text("🤔 Thinking...")
 
-    # Get reply from Groq
+    # 🔐 Don't print system prompt or full history
     reply = get_groq_reply(user_id, user_input)
 
-    # Delete thinking message
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
-
-    # Send reply
     await update.message.reply_text(reply)
 
-    # Print logs
-    print(f"🗣️ User: [{name} ({username})] at {time_now}")
-    print(f"💬 Message: {user_input}")
-    print(f"🤖 Bot reply: {reply}")
+    # ✅ Clean log only user input and bot reply
+    print(f"🗣️ {name} ({username}) at {time_now}")
+    print(f"💬 User: {user_input}")
+    print(f"🤖 Bot : {reply}")
     print("-" * 40)
 
 def main():
