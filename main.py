@@ -22,7 +22,9 @@ def get_groq_reply(user_id, user_input):
     }
     url = "https://api.groq.com/openai/v1/chat/completions"
 
-    history = [{"role": "system", "content": """
+    past = chat_history.get(user_id, [])[-4:]
+
+    system_prompt = {"role": "system", "content": """
 You are Alexa – a fun, desi-style Indian chatbot who talks like a real human friend. 
 Always speak in Hindi (with light English mix). You always say "aap" to show respect, 
 but still sound chill and friendly. 
