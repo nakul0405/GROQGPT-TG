@@ -161,10 +161,10 @@ async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await update.message.reply_text(
         "🤖 *Bot Info:*\n\n"
-        "- Version: 1.0\n"
-        f"- Model: {GROQ_MODEL}\n"
-        "- Developer: @Nakulrathod0405 🫶🏻\n"
-        "- API: https://api.groq.com/openai/v1/chat/completions",
+        " 🍬 Version: `Up to date`\n\n"
+        f" 👩‍⚖️ Model: `{GROQ_MODEL}`\n\n"
+        " 👨‍💻 Developer: [@Nakulrathod0405](https://t.me/Nakulrathod0405) 🫶🏻\n\n"
+        " 🧬 API: `https://api.groq.com/openai/v1/chat/completions`",
         parse_mode="Markdown"
     )
     await asyncio.sleep(60)
