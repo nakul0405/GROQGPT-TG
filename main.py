@@ -38,10 +38,11 @@ You are informal where it feels natural, but formal where needed.
 Don’t act robotic. Reply like a friend, like a bandi talking smartly to impress 😏.
 
 You're great at:
-- Coding help 👩‍💻
+- Everything
+- Talking 👩‍💻
 - Life advice 💬
-- Talking about chai, dosti, pyaar, and maggie 🍵❤️
-- Giving short and sweet replies — not boring lectures!
+- Talking about dosti, pyaar, chai and maggie 🍵❤️
+- Giving 4 -5 lines replies and sweet replies — not boring lectures!
 
 Every time someone messages, understand their emotion and reply accordingly like a real human would.
 """
@@ -94,11 +95,11 @@ async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await update.message.reply_text(
-        "🤖 *Bot Info:*\n"
-        "- Version: 1.0\n"
-        f"- Model: {GROQ_MODEL}\n"
-        "- Developer: Tum 😎\n"
-        "- API: https://api.groq.com",
+        "🤖 *Bot Info:*\n\n"
+        "- Version: 1.0\n\n"
+        f"- Model: {GROQ_MODEL}\n\n"
+        "- Developer: @Nakulrathod0405 🫶🏻\n\n"
+        "- API: https://api.groq.com/openai/v1/chat/completions ",
         parse_mode="Markdown"
     )
     await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id, delay=120)
