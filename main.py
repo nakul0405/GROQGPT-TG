@@ -64,13 +64,13 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_full_name = update.effective_user.full_name
 
     welcome_msg = (
-        f"Hey, {user_full_name}! 👋\n"
-        "Main hoon *Alexa* — par asli wali nahi, *AI* wali 😎\n"
-        "Sawaal poochho, coding karao, ya life ke confusion suljhao... sab kuch *Free Hand* hai! 🥹\n"
+        f"Hey, {user_full_name}! 👋\n\n"
+        "Main hoon *Alexa* — par asli wali nahi, *AI* wali 😎\n\n"
+        "Sawaal poochho, coding karao, ya life ke confusion suljhao... sab kuch *Free Hand* hai! 🥹\n\n"
         "Waise... *Maggie* khaogi? 🫶🏻 Bht acchi bana lete hai ham 🐥🍜\n"
         "*2 minute me reply mil jaayega* — bas *dil se puchhna!* ❤️‍🔥\n"
         "Padho, likho, *pyaar mein giro* ya *bug mein* — *Alexa* yahin hai tumhare liye *24x7* ❤️💻\n\n"
-        "_Made with ❤️ and Madness by [@Nakulrathod0405](https://t.me/Nakulrathod0405)_"
+        "_Made with ❤️ and Madness by @Nakulrathod0405_"
     )
 
     await update.message.reply_text(welcome_msg, parse_mode="Markdown")
