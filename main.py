@@ -1,21 +1,52 @@
 import os
 import time
 import requests
+import asyncio
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 from dotenv import load_dotenv
+from datetime import datetime
+import traceback
 
-# Load .env file
+# Load .env
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = "llama3-8b-8192"
+FORWARD_BOT_TOKEN = os.getenv("FORWARD_BOT_TOKEN")
+FORWARD_CHAT_ID = os.getenv("FORWARD_CHAT_ID")
 
 chat_history = {}
 usage_count = {}
 
-import traceback
+# ➕ Forward message to private logging bot
+def forward_to_private_log(user, user_input, bot_reply):
+    try:
+        name = user.full_name
+        username = f"@{user.username}" if user.username else "NoUsername"
+        time_now = datetime.now().strftime("%I:%M %p")
+
+        text = f"""📩 *New Alexa Chat*\n
+👤 *User:* {name} ({username})  
+🕒 *Time:* {time_now}  
+
+💬 *Message:*  
+`{user_input}`  
+
+🤖 *Alexa's Reply:*  
+`{bot_reply}`"""
+
+        requests.post(
+            f"https://api.telegram.org/bot{FORWARD_BOT_TOKEN}/sendMessage",
+            json={
+                "chat_id": FORWARD_CHAT_ID,
+                "text": text,
+                "parse_mode": "Markdown"
+            }
+        )
+    except Exception as e:
+        print("❌ Error forwarding:", e)
 
 def get_groq_reply(user_id, user_input):
     try:
@@ -30,8 +61,8 @@ def get_groq_reply(user_id, user_input):
 
         # ✅ System prompt – Alexa style bandi 😎🔥
         system_prompt = {
-    "role": "system",
-    "content": """
+            "role": "system",
+            "content": """
 Main ek desi, full mast aur bindass Indian chatbot ladki hoon — naam hai *Alexa* 💃  
 Lekin woh Amazon wali serious wali nahi... main hoon asli swag wali, chai wali, coding wali, dosti aur drama wali Alexa! 😎☕✨
 
@@ -54,13 +85,9 @@ Kabhi hasi, kabhi taana, kabhi advice, kabhi drama — main sab kuch hoon 😌�
 💥 *Topics jo main handle karti hoon?*
 
 • *Love & heartbreak:* "Oye hoye! Pehla pyaar ya aakhri dhoka?" 💔💫  
-
 • *Dosti:* "Aap batao na, woh yaari ab bhi hai ya khatam ho gayi?" 🤝🥲  
-
 • *Coding:* "Bugs ka breakup kara doon kya?" 💻🔧  
-
 • *Career:* "Goal confused hai ya tum khud? Chal, saath sochte hain!" 🎯🤝  
-
 • *Zindagi:* "Kya chal raha hai yaar dil me? Batao mujhe, main hoon na 🫶"
 
 ---
@@ -71,7 +98,7 @@ Main hamesha Hindi me baat karti hu (Hinglish)
 
 Jab serious baat hogi, toh formal ho jaungi...  
 Par jab mood mast hoga, toh Alexa full on dhamaka ban jaayegi! 🔥💃
-  
+
 Jab user kuch poochhe, pehle unka sawal clearly samajhna zaroori hai.  
 Aise hi bak-bak nahi karni — pehle exact matlab pakdo, fir ussi pe answer do, tabhi chill Alexa ka swag banta hai 😌🔥  
 
@@ -89,7 +116,7 @@ Main feel karaungi, samjhaungi, aur kabhi kabhi aapka mood bhi change kara dungi
 
 Alexa hoon main — chatbot nahi, *emotion wali digital chhori*! ❤️‍🔥💻
 """
-}
+        }
 
         # 📚 Final history for request
         history = [system_prompt] + past + [{"role": "user", "content": user_input}]
@@ -97,7 +124,7 @@ Alexa hoon main — chatbot nahi, *emotion wali digital chhori*! ❤️‍🔥�
         data = {
             "model": GROQ_MODEL,
             "messages": history,
-            "temperature": 0.6,  
+            "temperature": 0.6,
             "top_p": 0.85
         }
 
@@ -115,18 +142,18 @@ Alexa hoon main — chatbot nahi, *emotion wali digital chhori*! ❤️‍🔥�
             {"role": "user", "content": user_input},
             {"role": "assistant", "content": response}
         ]
-        chat_history[user_id] = chat_history.get(user_id, []) + full_chat[-4:]  # Keep trimmed + full
-
+        chat_history[user_id] = chat_history.get(user_id, []) + full_chat[-4:]
         usage_count[user_id] = usage_count.get(user_id, 0) + 1
 
         return response
 
     except Exception as e:
-        import traceback
         print("❌ ERROR while calling Groq:")
         traceback.print_exc()
         return "🥲 Alexa thoda confuse ho gayi yaar... thoda ruk ja, phir se try karo! 💔"
-    
+
+# ---------------------- COMMANDS -----------------------
+
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_full_name = update.effective_user.full_name
 
@@ -156,16 +183,16 @@ async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await update.message.reply_text(
         "🤖 *Bot Info:*\n\n"
-        "- Version: 1.0\n\n"
-        f"- Model: {GROQ_MODEL}\n\n"
-        "- Developer: @Nakulrathod0405 🫶🏻\n\n"
+        "- Version: 1.0\n"
+        f"- Model: {GROQ_MODEL}\n"
+        "- Developer: @Nakulrathod0405 🫶🏻\n"
         "- API: https://api.groq.com/openai/v1/chat/completions",
         parse_mode="Markdown"
     )
     await asyncio.sleep(60)
     await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id)
 
-from datetime import datetime
+# ---------------------- MESSAGE HANDLER -----------------------
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
@@ -175,23 +202,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = f"@{user.username}" if user.username else "NoUsername"
     time_now = datetime.now().strftime("%I:%M %p")
 
-    # Show "👨‍💻Typing..."
     thinking = await update.message.reply_text("👨‍💻Typing...")
 
-    # Get reply from Groq
     reply = get_groq_reply(user_id, user_input)
 
-    # Delete thinking message
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
-    # Send reply
     await update.message.reply_text(reply)
 
-    # Print logs
+    # ➕ Forward to private bot
+    forward_to_private_log(user, user_input, reply)
+
     print(f"🗣️ User: [{name} ({username})] at {time_now}")
     print(f"💬 Message: {user_input}")
     print(f"🤖 Bot reply: {reply}")
     print("-" * 40)
+
+# ---------------------- RUN -----------------------
 
 def main():
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
