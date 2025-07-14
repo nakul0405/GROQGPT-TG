@@ -160,19 +160,26 @@ async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
+        # ✅ User ka `/info` message delete karo
         await update.message.delete()
-        
-    msg = await update.message.reply_text(     
-        " 🤖 *Bot Info:*\n\n"
-        " 🍬 Version: `Up to date`\n\n"
-        f" 👩‍⚖️ Model: `{GROQ_MODEL}`\n\n"
-        " 👨‍💻 Developer: [Nakul Rathod](https://t.me/Nakulrathod0405) 🫶🏻\n\n"
-        " 🧬 API: `https://api.groq.com/openai/v1/chat/completions`",
-        parse_mode="Markdown"
-    )
-    await asyncio.sleep(60)
-    await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id)
 
+        # ✅ Bot ka reply
+        msg = await update.message.reply_text(
+            "🤖 *Bot Info:*\n\n"
+            " 🍬 Version: `Up to date`\n\n"
+            f" 👩‍⚖️ Model: `{GROQ_MODEL}`\n\n"
+            " 👨‍💻 Developer: [Nakul Rathod](https://t.me/Nakulrathod0405) 🫶🏻\n\n"
+            " 🧬 API: `https://api.groq.com/openai/v1/chat/completions`",
+            parse_mode="Markdown"
+        )
+
+        # ✅ 60 sec baad reply delete karo
+        await asyncio.sleep(30)
+        await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id)
+
+    except Exception as e:
+        print("❌ Error in /info command:", e)
+        
 # ---------------------- MESSAGE HANDLER -----------------------
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
