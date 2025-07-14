@@ -15,16 +15,23 @@ GROQ_MODEL = "llama3-8b-8192"
 chat_history = {}
 usage_count = {}
 
+import traceback
+
 def get_groq_reply(user_id, user_input):
-    headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
-        "Content-Type": "application/json"
-    }
-    url = "https://api.groq.com/openai/v1/chat/completions"
+    try:
+        headers = {
+            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        url = "https://api.groq.com/openai/v1/chat/completions"
 
-    past = chat_history.get(user_id, [])[-4:]
+        # 🧠 Past 4 messages only (if any)
+        past = chat_history.get(user_id, [])[-4:]
 
-    system_prompt = {"role": "system", "content": """
+        # ✅ Clean system prompt
+        system_prompt = {
+            "role": "system",
+            "content": """
 You are Alexa – a smart, fun, desi-style Indian chatbot who speaks like a real human friend.
 You always respond in Hindi with light English mix (Hinglish), like Indian youth talks casually.
 You always use "aap" to show respect, but your tone is chill, friendly, and expressive – never robotic.
@@ -36,25 +43,42 @@ Helping with anything (tech, life, career) 👩‍💻
 Dosti, pyaar, chai, maggie talks 🍵❤️
 Life advice in a fun and sassy way 💬
 Stay informal when natural, formal when needed – just like a real, relatable best friend.
-Don’t give boring lectures. Always speak from the heart, with thoda attitude & style 💅."""} + chat_history.get(user_id, [])
-    history = [system_prompt] + past
-    history.append({"role": "user", "content": user_input})
+Don’t give boring lectures. Always speak from the heart, with thoda attitude & style 💅."""
+        }
 
-    data = {
-        "model": GROQ_MODEL,
-        "messages": history,
-        "temperature": 0.9  # higher = more creative
-    }
+        # ✅ Construct full history
+        history = [system_prompt] + past + [{"role": "user", "content": user_input}]
 
-    res = requests.post(url, headers=headers, json=data)
-    response = res.json()["choices"][0]["message"]["content"]
+        data = {
+            "model": GROQ_MODEL,
+            "messages": history,
+            "temperature": 0.9
+        }
 
-    # Save new messages
-    past.append({"role": "user", "content": user_input})
-    past.append({"role": "assistant", "content": response})
-    chat_history[user_id] = past
+        print("📤 Sending request to Groq...")
+        print("🧠 Prompt:", data["messages"][-1]["content"])
 
-    return response
+        # 🔁 Make request safely
+        res = requests.post(url, headers=headers, json=data)
+        res.raise_for_status()
+
+        # ✅ Get content safely
+        response_json = res.json()
+        response = response_json["choices"][0]["message"]["content"]
+
+        # Save messages
+        full_history = past + [
+            {"role": "user", "content": user_input},
+            {"role": "assistant", "content": response}
+        ]
+        chat_history[user_id] = full_history
+
+        return response
+
+    except Exception as e:
+        print("❌ Error while calling Groq API:")
+        traceback.print_exc()
+        return "😔 Sorry, kuch galti ho gayi Alexa ke side se. Thoda der me fir try karo ji!"
     
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_full_name = update.effective_user.full_name
