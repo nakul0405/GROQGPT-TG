@@ -163,7 +163,7 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "🤖 *Bot Info:*\n\n"
         " 🍬 Version: `Up to date`\n\n"
         f" 👩‍⚖️ Model: `{GROQ_MODEL}`\n\n"
-        " 👨‍💻 Developer: [@Nakulrathod0405](https://t.me/Nakulrathod0405) 🫶🏻\n\n"
+        " 👨‍💻 Developer: [Nakul Rathod](https://t.me/Nakulrathod0405) 🫶🏻\n\n"
         " 🧬 API: `https://api.groq.com/openai/v1/chat/completions`",
         parse_mode="Markdown"
     )
