@@ -97,7 +97,8 @@ Alexa hoon main — chatbot nahi, *emotion wali digital chhori*! ❤️‍🔥�
         data = {
             "model": GROQ_MODEL,
             "messages": history,
-            "temperature": 0.9
+            "temperature": 0.6,  
+            "top_p": 0.85
         }
 
         print("📤 Sending request to Groq...")
