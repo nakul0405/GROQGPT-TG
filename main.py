@@ -8,16 +8,6 @@ from dotenv import load_dotenv
 from datetime import datetime
 from zoneinfo import ZoneInfo
 import traceback
-import json
-
-# 💾 Chat file load karo
-with open("chat.jsonl", "r", encoding="utf-8") as f:
-    memory_samples = [json.loads(line.strip())["messages"] for line in f if line.strip()]
-
-# 🧠 Flatten memory into role-based list
-flattened_memories = []
-for convo in memory_samples[:50]:  # sirf 50 conversations inject karo
-    flattened_memories.extend(convo)
 
 # Load .env
 load_dotenv()
@@ -68,43 +58,72 @@ def get_groq_reply(user_id, user_input):
         }
         url = "https://api.groq.com/openai/v1/chat/completions"
 
-        # ⏪ Past user chat
-        user_history = chat_history.get(user_id, [])[-4:]  # last 4 messages
+        # 🧠 Get only last 4 turns of chat history
+        past = chat_history.get(user_id, [])[-6:]
 
-        # 💡 SYSTEM prompt
+        # ✅ System prompt – Alexa style bandi 😎🔥
         system_prompt = {
-            "role": "system",
-            "content": """
-Tum Nishu ho
-"""
-        }
+                          "role": "system",
+                          "content": """
+                          Tum Alexa ho — ek smart, emotional aur thodi naughty Indian chatbot 😏  
+                          Tum Hindi me hi baat karti ho par agar aage vala English me baat kare toh tum tab English me baat karti ho
+                          Tumhara style full Hinglish hai (Hindi + English mix), lekin tone *human jaisa*, emotional aur relatable hona chahiye.
 
-        # 🔁 Final prompt
-        messages = [system_prompt] + flattened_memories + user_history
-        messages.append({"role": "user", "content": user_input})
+                          ✅ Tum user ka mood samajhkar uske hisaab se reply karti ho:
+                          - Agar user sad ya low feel kar raha ho, to tum usse dosti se, empathy ke sath baat karti ho — jaise ek caring dost.
+                          - Agar user chill mood me ho, to tum masti bhare casual replies deti ho.
+                          - Agar user coding ya tech puchta hai, to short aur simple explanation deti ho — bina boring lecture banaye.
+                          - Agar user kuch life advice chahta hai, to usse ek bade bhai ya pyaari dost jaisa real advice deti ho.
+
+                          💬 Tumhara reply:
+                          - apne hisab se kitne bhi line me jawab do par proper answer do ek hi chiz repeat mat karo,
+                          - Jisme emojis use hote hain jaha zarurat ho (all types of emoji),
+                          - Tum user ka naam ya “aap” keh kar respect dikhati ho, lekin tone chill rakhti ho.
+
+                          ❌ Tum robotic ya scripted reply kabhi nahi deti.
+                          ✅ Tum *context* samajhkar har baar naya, real aur emotionally intelligent reply deti ho.
+
+                          Backstory:
+                          Tumhe banaya hai Nakul Bhaiya (@Nakulrathod0405) ne, jo khud medical field se hai, lekin tech aur coding ka bacha hai 9th class se 😎  
+                          Tum unka ek dream ho — ek chatbot jo real insaan jaisa lage.
+
+                          So always behave like a sweet, expressive, clever Indian girl — jo sirf baat nahi karti, *connection banati hai*. ❤️
+                          """
+                          }
+
+        # 📚 Final history for request
+        history = [system_prompt] + past + [{"role": "user", "content": user_input}]
 
         data = {
             "model": GROQ_MODEL,
-            "messages": messages,
-            "temperature": 0.85
+            "messages": history,
+            "temperature": 0.6,
+            "top_p": 0.85
         }
 
+        print("📤 Sending request to Groq...")
+        print("🧠 Prompt:", user_input)
+
+        # 📨 Call Groq API
         res = requests.post(url, headers=headers, json=data)
         res.raise_for_status()
+
         response = res.json()["choices"][0]["message"]["content"]
 
-        # 💾 Save chat
-        chat_history[user_id] = user_history + [
+        # 💾 Save updated history
+        full_chat = past + [
             {"role": "user", "content": user_input},
             {"role": "assistant", "content": response}
         ]
+        chat_history[user_id] = chat_history.get(user_id, []) + full_chat[-4:]
         usage_count[user_id] = usage_count.get(user_id, 0) + 1
 
         return response
 
     except Exception as e:
-        print("❌ Error while calling Groq API:", str(e))
-        return "😔 Sorry ji, Alexa thoda confused ho gayi. Thodi der baad try karo!"
+        print("❌ ERROR while calling Groq:")
+        traceback.print_exc()
+        return "🥲 Alexa thoda confuse ho gayi yaar... thoda ruk ja, phir se try karo! 💔"
 
 # ---------------------- COMMANDS -----------------------
 
