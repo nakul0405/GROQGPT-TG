@@ -6,6 +6,7 @@ from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 from dotenv import load_dotenv
 from datetime import datetime
+from zoneinfo import ZoneIn
 import traceback
 
 # Load .env
@@ -151,7 +152,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = user.id
     name = user.full_name
     username = f"@{user.username}" if user.username else "NoUsername"
-    time_now = datetime.now().strftime("%I:%M %p")
+    time_now = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y, %I:%M %p")
 
     thinking = await update.message.reply_text("👨‍💻Typing...")
 
