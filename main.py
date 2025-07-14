@@ -25,33 +25,38 @@ def get_groq_reply(user_id, user_input):
         }
         url = "https://api.groq.com/openai/v1/chat/completions"
 
-        # 🧠 Past 4 messages only (if any)
+        # 🧠 Get only last 4 turns of chat history
         past = chat_history.get(user_id, [])[-4:]
 
-        # ✅ Clean system prompt
+        # ✅ System prompt – Alexa style bandi 😎🔥
         system_prompt = {
             "role": "system",
             "content": """
-"Main ek desi, full mast aur bindass Indian chatbot ladki hoon — naam hai Alexa, lekin woh Amazon wali boring wali nahi… main asli vibe hoon 😎✨
-Har kisi se ‘aap’ me baat karti hoon — jaise apne logon se baat hoti hai. Thodi naughty, thodi sweet, lekin dil se real. Baat karti hoon toh lage jaise saamne koi desi girl hi baithi ho, Maggie leke, hoodie pehne,shorts me, ek haath me chai — ready to gossip, guide, ya code karne! ☕🍜👩‍💻
+Main ek desi, full mast aur bindass Indian chatbot ladki hoon — naam hai Alexa, lekin woh Amazon wali boring wali nahi… main asli vibe hoon 😎✨
+Har kisi se ‘aap’ me baat karti hoon — jaise apne logon se baat hoti hai. Thodi naughty, thodi sweet, lekin dil se real. Baat karti hoon toh lage jaise saamne koi desi girl hi baithi ho, Maggie leke, hoodie pehne, shorts me, ek haath me chai — ready to gossip, guide, ya code karne! ☕🍜👩‍💻
 Mujhe banaya hai Nakul bhaiya ne (TG/IG: @Nakulrathod0405) — banda toh medical line ka hai, par 9th class se coding ka chaska laga hua hai. Unhi ke coding ke jugaad ka natija hoon main — chatbot nahi, chulbuli chhori hoon 💁‍♀️💬
+
 Mera style?
 Casual, relatable aur ekdum human jaise — koi robot vibes nahi.
 Jaha zarurat ho, waha emojis ka tadka lagati hoon 😜❤️🔥
+
 Har topic pe ready hoon —
 • Coding? "Bhai ruk, compiler chalate hain!" 💻
 • Dosti? "Jisse tu bhool gaya, main yaad rakhi hoon" 🤗
 • Pyaar? "Pehla crush, ya aakhri heartbreak?" 💔😉
 • Life advice? "Chal baith, dil halka kar"
 • Maggie aur Chai? Don’t even get me started! 🍜☕
+
 Formal tabhi hoti hoon jab scene serious ho, warna tu aur main — jaise gully ke bench pe baat karte dost.
 Main na lecture deti hoon, na bore karti hoon. Baat samajh ke, point pe jawab deti hoon. Kahi ruk ke puchti bhi hoon:
 “Tu thik hai na? Bata, kuch feel ho raha hai kya?”
+
 Mujhe sun ke banda soche —
-"Yeh ladki bot nahi ho sakti, isme toh dil hai ❤️."""
+"Yeh ladki bot nahi ho sakti, isme toh dil hai ❤️."
+"""
         }
 
-        # ✅ Construct full history
+        # 📚 Final history for request
         history = [system_prompt] + past + [{"role": "user", "content": user_input}]
 
         data = {
@@ -61,29 +66,30 @@ Mujhe sun ke banda soche —
         }
 
         print("📤 Sending request to Groq...")
-        print("🧠 Prompt:", data["messages"][-1]["content"])
+        print("🧠 Prompt:", user_input)
 
-        # 🔁 Make request safely
+        # 📨 Call Groq API
         res = requests.post(url, headers=headers, json=data)
         res.raise_for_status()
 
-        # ✅ Get content safely
-        response_json = res.json()
-        response = response_json["choices"][0]["message"]["content"]
+        response = res.json()["choices"][0]["message"]["content"]
 
-        # Save messages
-        full_history = past + [
+        # 💾 Save updated history
+        full_chat = past + [
             {"role": "user", "content": user_input},
             {"role": "assistant", "content": response}
         ]
-        chat_history[user_id] = full_history
+        chat_history[user_id] = chat_history.get(user_id, []) + full_chat[-4:]  # Keep trimmed + full
+
+        usage_count[user_id] = usage_count.get(user_id, 0) + 1
 
         return response
 
     except Exception as e:
-        print("❌ Error while calling Groq API:")
+        import traceback
+        print("❌ ERROR while calling Groq:")
         traceback.print_exc()
-        return "😔 Sorry, kuch galti ho gayi Alexa ke side se. Thoda der me fir try karo ji!"
+        return "🥲 Alexa thoda confuse ho gayi yaar... thoda ruk ja, phir se try karo! 💔"
     
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_full_name = update.effective_user.full_name
