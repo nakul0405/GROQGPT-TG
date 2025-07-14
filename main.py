@@ -15,81 +15,45 @@ GROQ_MODEL = "llama3-8b-8192"
 chat_history = {}
 usage_count = {}
 
-import traceback
-
 def get_groq_reply(user_id, user_input):
-    try:
-        headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        url = "https://api.groq.com/openai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    url = "https://api.groq.com/openai/v1/chat/completions"
 
-        # ✅ System prompt
-        system_prompt = {
-            "role": "system",
-            "content": """
-You are Alexa – a fun, desi-style Indian chatbot who talks like a real human friend. 
-Always speak in Hindi (with light English mix). You always say "aap" or ask their name and use it to show respect, 
-but still sound chill and friendly.
+    history = chat_history.get(user_id, [])
+    history.append({"role": "user", "content": user_input})
 
-You were created by Nakul Bhaiya (@Nakulrathod0405), a cool developer from the medical field 
-who’s passionate about tech since class 9. You make jokes, use emojis when it fits 🤭, and sound like a smart, real person.
+    data = {
+        "model": GROQ_MODEL,
+        "messages": history,
+        "temperature": 0.7
+    }
 
-You are informal where it feels natural, but formal where needed. 
-Don’t act robotic. Reply like a friend, like a bandi talking smartly to impress 😏.
+    res = requests.post(url, headers=headers, json=data)
+    response = res.json()["choices"][0]["message"]["content"]
 
-You're great at:
-- Everything
-- Talking 👩‍💻
-- Life advice 💬
-- Talking about dosti, pyaar, chai and maggie 🍵❤️
-- Giving 4–5 line replies that are sweet — not boring lectures!
+    history.append({"role": "assistant", "content": response})
+    chat_history[user_id] = history
+    usage_count[user_id] = usage_count.get(user_id, 0) + 1
 
-Every time someone messages, understand their emotion and reply accordingly like a real human would.
-"""
-        }
-
-        # ✅ Merge system + previous history
-        user_history = chat_history.get(user_id, [])
-        history = [system_prompt] + user_history + [{"role": "user", "content": user_input}]
-
-        data = {
-            "model": GROQ_MODEL,
-            "messages": history,
-            "temperature": 0.7
-        }
-
-        # 🔍 Debug (optional)
-        print("📤 Sending request to Groq...")
-        print("🧠 Prompt:", data["messages"][-1])  # Only last user message
-
-        # 🔁 API call
-        res = requests.post(url, headers=headers, json=data)
-        res.raise_for_status()
-
-        response = res.json()["choices"][0]["message"]["content"]
-
-        # ✅ Save chat history
-        chat_history[user_id] = user_history + [
-            {"role": "user", "content": user_input},
-            {"role": "assistant", "content": response}
-        ]
-        usage_count[user_id] = usage_count.get(user_id, 0) + 1
-
-        return response
-
-    except Exception as e:
-        print("🚨 ERROR while calling Groq API")
-        print("User ID:", user_id)
-        print("Input:", user_input)
-        print("System prompt:", system_prompt["content"][:100] + "...")
-        print("Exception:", str(e))
-        traceback.print_exc()
-        return "😔 Sorry, kuch galat ho gaya. Thoda der baad try karo."
+    return response
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("👋 Hello! I'm your AI Assistant powered by Groq!")
+    user_full_name = update.effective_user.full_name
+
+    welcome_msg = (
+        f"Hey, {user_full_name}! 👋\n"
+        "Main hoon *Alexa* — par asli wali nahi, *AI* wali 😎\n"
+        "Sawaal poochho, coding karao, ya life ke confusion suljhao... sab kuch *Free Hand* hai! 🥹\n"
+        "Waise... *Maggie* khaogi? 🫶🏻 Bht acchi bana lete hai ham 🐥🍜\n"
+        "*2 minute me reply mil jaayega* — bas *dil se puchhna!* ❤️‍🔥\n"
+        "Padho, likho, *pyaar mein giro* ya *bug mein* — *Alexa* yahin hai tumhare liye *24x7* ❤️💻\n\n"
+        "_Made with ❤️ and Madness by [@Nakulrathod0405](https://t.me/Nakulrathod0405)_"
+    )
+
+    await update.message.reply_text(welcome_msg, parse_mode="Markdown")
 
 async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
@@ -108,36 +72,22 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "- Version: 1.0\n\n"
         f"- Model: {GROQ_MODEL}\n\n"
         "- Developer: @Nakulrathod0405 🫶🏻\n\n"
-        "- API: https://api.groq.com/openai/v1/chat/completions ",
+        "- API: https://api.groq.com/openai/v1/chat/completions",
         parse_mode="Markdown"
     )
     await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id, delay=120)
 
-from datetime import datetime
-
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user = update.effective_user
     user_input = update.message.text
-    user_id = user.id
-    name = user.full_name
-    username = f"@{user.username}" if user.username else "NoUsername"
-    time_now = datetime.now().strftime("%I:%M %p")
+    user_id = update.effective_user.id
 
-    thinking = await update.message.reply_text("🤔 Thinking...")
+    thinking = await update.message.reply_text("⌨✍️ Typing...")
 
-    # 🔐 Don't print system prompt or full history
     reply = get_groq_reply(user_id, user_input)
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
+
     await update.message.reply_text(reply)
-
-    # ✅ Clean log only user input and bot reply
-    print(f"🗣️ {name} ({username}) at {time_now}")
-    print(f"💬 User: {user_input}")
-    print(f"🤖 Bot : {reply}")
-    print("-" * 40)
-
-import os
 
 def main():
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
@@ -148,13 +98,8 @@ def main():
     app.add_handler(CommandHandler("info", info))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    # Webhook setup
-    port = int(os.environ.get("PORT", 8443))
-    webhook_url = os.environ.get("WEBHOOK_URL")  # Set this in Zeabur env vars
+    print("🤖 Bot is running...")
+    app.run_polling()
 
-    print("🚀 Running bot with webhook...")
-    app.run_webhook(
-        listen="0.0.0.0",
-        port=port,
-        webhook_url=webhook_url,
-    )
+if __name__ == "__main__":
+    main()
