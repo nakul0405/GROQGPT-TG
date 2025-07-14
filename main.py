@@ -66,17 +66,33 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id, delay=120)
 
+from datetime import datetime
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user = update.effective_user
     user_input = update.message.text
-    user_id = update.effective_user.id
+    user_id = user.id
+    name = user.full_name
+    username = f"@{user.username}" if user.username else "NoUsername"
+    time_now = datetime.now().strftime("%I:%M %p")
 
-    thinking = await update.message.reply_text("🤔 Thinking...")
+    # Show " Typing..."
+    thinking = await update.message.reply_text(" Typing...")
 
+    # Get reply from Groq
     reply = get_groq_reply(user_id, user_input)
 
+    # Delete thinking message
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
+    # Send reply
     await update.message.reply_text(reply)
+
+    # Print logs
+    print(f"🗣️ User: [{name} ({username})] at {time_now}")
+    print(f"💬 Message: {user_input}")
+    print(f"🤖 Bot reply: {reply}")
+    print("-" * 40)
 
 def main():
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
