@@ -159,8 +159,11 @@ async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(f"📊 Total messages: {count}")
 
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    msg = await update.message.reply_text(
-        "🤖 *Bot Info:*\n\n"
+    try:
+        await update.message.delete()
+        
+    msg = await update.message.reply_text(     
+        " 🤖 *Bot Info:*\n\n"
         " 🍬 Version: `Up to date`\n\n"
         f" 👩‍⚖️ Model: `{GROQ_MODEL}`\n\n"
         " 👨‍💻 Developer: [Nakul Rathod](https://t.me/Nakulrathod0405) 🫶🏻\n\n"
