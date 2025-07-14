@@ -29,7 +29,7 @@ def forward_to_private_log(user, user_input, bot_reply):
         time_now = datetime.now().strftime("%I:%M %p")
 
         text = f"""📩 *New Alexa Chat*\n
-👤 *User:* {name} ({username})  at {time_now}
+👤 *User:* {name} ({username}) 
 
 🕒 *Time:* {time_now}  
 
