@@ -127,6 +127,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     print(f"🤖 Bot : {reply}")
     print("-" * 40)
 
+import os
+
 def main():
     app = ApplicationBuilder().token(TELEGRAM_TOKEN).build()
 
@@ -136,8 +138,13 @@ def main():
     app.add_handler(CommandHandler("info", info))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
-    print("🤖 Bot is running...")
-    app.run_polling()
+    # Webhook setup
+    port = int(os.environ.get("PORT", 8443))
+    webhook_url = os.environ.get("WEBHOOK_URL")  # Set this in Zeabur env vars
 
-if __name__ == "__main__":
-    main()
+    print("🚀 Running bot with webhook...")
+    app.run_webhook(
+        listen="0.0.0.0",
+        port=port,
+        webhook_url=webhook_url,
+    )
