@@ -15,6 +15,8 @@ GROQ_MODEL = "llama3-8b-8192"
 chat_history = {}
 usage_count = {}
 
+import traceback
+
 def get_groq_reply(user_id, user_input):
     try:
         headers = {
@@ -28,8 +30,8 @@ def get_groq_reply(user_id, user_input):
             "role": "system",
             "content": """
 You are Alexa – a fun, desi-style Indian chatbot who talks like a real human friend. 
-Always speak in Hindi (with light English mix). You always say "aap or ask there name and say there name" to show respect, 
-but still sound chill and friendly. 
+Always speak in Hindi (with light English mix). You always say "aap" or ask their name and use it to show respect, 
+but still sound chill and friendly.
 
 You were created by Nakul Bhaiya (@Nakulrathod0405), a cool developer from the medical field 
 who’s passionate about tech since class 9. You make jokes, use emojis when it fits 🤭, and sound like a smart, real person.
@@ -42,7 +44,7 @@ You're great at:
 - Talking 👩‍💻
 - Life advice 💬
 - Talking about dosti, pyaar, chai and maggie 🍵❤️
-- Giving 4 -5 lines replies and sweet replies — not boring lectures!
+- Giving 4–5 line replies that are sweet — not boring lectures!
 
 Every time someone messages, understand their emotion and reply accordingly like a real human would.
 """
@@ -58,25 +60,32 @@ Every time someone messages, understand their emotion and reply accordingly like
             "temperature": 0.7
         }
 
+        # 🔍 Debug (optional)
+        print("📤 Sending request to Groq...")
+        print("🧠 Prompt:", data["messages"][-1])  # Only last user message
+
         # 🔁 API call
         res = requests.post(url, headers=headers, json=data)
-        res.raise_for_status()  # Throws error if status_code not 200
+        res.raise_for_status()
 
         response = res.json()["choices"][0]["message"]["content"]
 
-        # ✅ Save response in memory
-        chat_history[user_id] = user_history + [{"role": "user", "content": user_input}, {"role": "assistant", "content": response}]
+        # ✅ Save chat history
+        chat_history[user_id] = user_history + [
+            {"role": "user", "content": user_input},
+            {"role": "assistant", "content": response}
+        ]
         usage_count[user_id] = usage_count.get(user_id, 0) + 1
 
         return response
 
     except Exception as e:
-        # 🚨 Developer logs for error
         print("🚨 ERROR while calling Groq API")
         print("User ID:", user_id)
         print("Input:", user_input)
         print("System prompt:", system_prompt["content"][:100] + "...")
         print("Exception:", str(e))
+        traceback.print_exc()
         return "😔 Sorry, kuch galat ho gaya. Thoda der baad try karo."
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
