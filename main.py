@@ -42,7 +42,7 @@ You're great at:
 - Talking about dosti, pyaar,chai and maggie 🍵❤️
 - Giving 4 -5 lines replies and sweet replies — not boring lectures!
 
-Every time someone messages, understand their emotion and reply accordingly like a real human would."""}] + chat_history.get(user_id, [])
+Every time someone messages, understand their emotion and reply accordingly like a real human would."""} + chat_history.get(user_id, [])
     history = [system_prompt] + past
     history.append({"role": "user", "content": user_input})
 
