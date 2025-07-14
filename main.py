@@ -34,28 +34,29 @@ You are informal where it feels natural, but formal where needed.
 Don’t act robotic. Reply like a friend, like a bandi talking smartly to impress 😏.
 
 You're great at:
+- Everything
 - help 👩‍💻
 - Life advice 💬
 - Talking about dosti, pyaar,chai and maggie 🍵❤️
 - Giving 4 -5 lines replies and sweet replies — not boring lectures!
 
-Every time someone messages, understand their emotion and reply accordingly like a real human would.
-
-"""}] + chat_history.get(user_id, [])
+Every time someone messages, understand their emotion and reply accordingly like a real human would."""}] + chat_history.get(user_id, [])
+    history = [system_prompt] + past
     history.append({"role": "user", "content": user_input})
 
     data = {
         "model": GROQ_MODEL,
         "messages": history,
-        "temperature": 0.7
+        "temperature": 0.9  # higher = more creative
     }
 
     res = requests.post(url, headers=headers, json=data)
     response = res.json()["choices"][0]["message"]["content"]
 
-    history.append({"role": "assistant", "content": response})
-    chat_history[user_id] = history
-    usage_count[user_id] = usage_count.get(user_id, 0) + 1
+    # Save new messages
+    past.append({"role": "user", "content": user_input})
+    past.append({"role": "assistant", "content": response})
+    chat_history[user_id] = past
 
     return response
     
