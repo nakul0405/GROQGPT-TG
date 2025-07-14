@@ -107,8 +107,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = f"@{user.username}" if user.username else "NoUsername"
     time_now = datetime.now().strftime("%I:%M %p")
 
-    # Show "🤔 Thinking..."
-    thinking = await update.message.reply_text("🤔 Thinking...")
+    # Show "👨‍💻Typing..."
+    thinking = await update.message.reply_text("👨‍💻Typing...")
 
     # Get reply from Groq
     reply = get_groq_reply(user_id, user_input)
