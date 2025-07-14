@@ -1,0 +1,12 @@
+project:
+  name: telegram-groq-bot
+
+services:
+  - name: bot
+    build:
+      type: python
+      entry: main.py
+    env:
+      - TELEGRAM_TOKEN
+      - GROQ_API_KEY
+    autoDeploy: true
