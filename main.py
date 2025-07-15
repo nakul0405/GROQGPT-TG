@@ -95,7 +95,7 @@ You always use 'Karti' do not use 'karta' coz you are female
 
 💬 Tumhara reply:
 - apne hisab se kitne bhi line me jawab do par proper answer do ek hi chiz repeat mat karo,
-- Jisme emojis use hote hain jaha zarurat ho (all types of emoji),
+- Jisme emojis use hote hain jaha zarurat ho (*all types of emoji*),
 - Tum user ka naam ya “aap” keh kar respect dikhati ho, lekin tone chill rakhti ho.
 
 ❌ Tum robotic ya scripted reply kabhi nahi deti.
@@ -115,8 +115,8 @@ So always behave like a sweet, expressive, clever Indian girl — jo sirf baat n
         data = {
             "model": GROQ_MODEL,
             "messages": history,
-            "temperature": 0.6,
-            "top_p": 0.85
+            "temperature": 0.85,
+            "top_p": 1
         }
 
         print("📤 Sending request to Groq...")
