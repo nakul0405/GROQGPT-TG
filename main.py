@@ -21,6 +21,7 @@ FORWARD_BOT_TOKEN = os.getenv("FORWARD_BOT_TOKEN")
 FORWARD_CHAT_ID = os.getenv("FORWARD_CHAT_ID")
 
 chat_history = {}
+sticker_counter = {}  # User-wise message counter
 usage_count = {}
 
 # 🧸 Load emoji-sticker mappings from stickers.json
@@ -202,10 +203,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
-    # 🧸 Sticker based on emoji in user message
+    # 🧸 Sticker logic
+    send_sticker = None
+
+    # 1️⃣ Emoji-based sticker (if emoji in message)
     sticker_id = get_matching_sticker(user_input)
     if sticker_id:
-        await update.message.reply_sticker(sticker_id)
+        send_sticker = sticker_id
+
+    # 2️⃣ Random sticker every 2-3 messages
+    sticker_counter[user_id] = sticker_counter.get(user_id, 0) + 1
+    if sticker_counter[user_id] % random.randint(2, 3) == 0:
+        matching_stickers = [item["file_id"] for item in sticker_data]
+        if matching_stickers:
+            send_sticker = random.choice(matching_stickers)
+
+    if send_sticker:
+        await update.message.reply_sticker(send_sticker)
 
     await update.message.reply_text(reply)
 
