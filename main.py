@@ -184,7 +184,7 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="Markdown"
         )
 
-        await asyncio.sleep(30)
+        await asyncio.sleep(10)
         await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id)
 
     except Exception as e:
