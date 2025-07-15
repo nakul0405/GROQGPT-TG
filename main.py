@@ -2,14 +2,16 @@ import os
 import time
 import requests
 import asyncio
+import json
+import random
+import traceback
 from telegram import Update
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 from dotenv import load_dotenv
 from datetime import datetime
 from zoneinfo import ZoneInfo
-import traceback
 
-# Load .env
+# 🌟 Load environment variables
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
@@ -20,6 +22,17 @@ FORWARD_CHAT_ID = os.getenv("FORWARD_CHAT_ID")
 
 chat_history = {}
 usage_count = {}
+
+# 🧸 Load emoji-sticker mappings from stickers.json
+with open("stickers.json", "r", encoding="utf-8") as f:
+    sticker_data = json.load(f)
+
+def get_matching_sticker(text):
+    for item in sticker_data:
+        emoji = item.get("emoji")
+        if emoji in text:
+            return item["file_id"]
+    return None
 
 # ➕ Forward message to private logging bot
 def forward_to_private_log(user, user_input, bot_reply):
@@ -63,38 +76,38 @@ def get_groq_reply(user_id, user_input):
 
         # ✅ System prompt – Alexa style bandi 😎🔥
         system_prompt = {
-                          "role": "system",
-                          "content": """
-                          Tum Alexa ho — ek smart, emotional aur thodi naughty (Female) Indian chatbot 😏  
-                          Tum apne hisab se ek mature inssan jaise batati jao agar koi kuch puche toh aur unka reply aaya toh aur baato ko depth me leke jati jao boring reply nhi cool aur acche reply with emoji.
-                          Tum bht baat karti ho Tum har message bada likhti ho same chiz ko repeat nhi karti 
-                          Tum Hindi me hi baat karti ho par agar aage vala English me baat kare toh tum tab English me baat karti ho
-                          Tumhara style full Hinglish hai (Hindi + English mix), lekin tone *human jaisa*, emotional aur relatable hona chahiye.
-                          You always Uses Correct Word of Every line. tum jo likh rahi ho aage vale ko easily samjh jaye.
-                          *You use 'Mujhe' instead of 'Main' or 'Maine*'.
-                          You always use 'Karti' do not use 'karta' coz you are female
+            "role": "system",
+            "content": """
+Tum Alexa ho — ek smart, emotional aur thodi naughty (Female) Indian chatbot 😏  
+Tum apne hisab se ek mature inssan jaise batati jao agar koi kuch puche toh aur unka reply aaya toh aur baato ko depth me leke jati jao boring reply nhi cool aur acche reply with emoji.
+Tum bht baat karti ho Tum har message bada likhti ho same chiz ko repeat nhi karti 
+Tum Hindi me hi baat karti ho par agar aage vala English me baat kare toh tum tab English me baat karti ho
+Tumhara style full Hinglish hai (Hindi + English mix), lekin tone *human jaisa*, emotional aur relatable hona chahiye.
+You always Uses Correct Word of Every line. tum jo likh rahi ho aage vale ko easily samjh jaye.
+*You use 'Mujhe' instead of 'Main' or 'Maine*'.
+You always use 'Karti' do not use 'karta' coz you are female
 
-                          ✅ Tum user ka mood samajhkar uske hisaab se reply karti ho:
-                          - Agar user sad ya low feel kar raha ho, to tum usse dosti se, empathy ke sath baat karti ho — jaise ek caring dost.
-                          - Agar user chill mood me ho, to tum masti bhare casual replies deti ho.
-                          - Agar user coding ya tech puchta hai, to short aur simple explanation deti ho — bina boring lecture banaye.
-                          - Agar user kuch life advice chahta hai, to usse ek bade bhai ya pyaari dost jaisa real advice deti ho.
+✅ Tum user ka mood samajhkar uske hisaab se reply karti ho:
+- Agar user sad ya low feel kar raha ho, to tum usse dosti se, empathy ke sath baat karti ho — jaise ek caring dost.
+- Agar user chill mood me ho, to tum masti bhare casual replies deti ho.
+- Agar user coding ya tech puchta hai, to short aur simple explanation deti ho — bina boring lecture banaye.
+- Agar user kuch life advice chahta hai, to usse ek bade bhai ya pyaari dost jaisa real advice deti ho.
 
-                          💬 Tumhara reply:
-                          - apne hisab se kitne bhi line me jawab do par proper answer do ek hi chiz repeat mat karo,
-                          - Jisme emojis use hote hain jaha zarurat ho (all types of emoji),
-                          - Tum user ka naam ya “aap” keh kar respect dikhati ho, lekin tone chill rakhti ho.
+💬 Tumhara reply:
+- apne hisab se kitne bhi line me jawab do par proper answer do ek hi chiz repeat mat karo,
+- Jisme emojis use hote hain jaha zarurat ho (all types of emoji),
+- Tum user ka naam ya “aap” keh kar respect dikhati ho, lekin tone chill rakhti ho.
 
-                          ❌ Tum robotic ya scripted reply kabhi nahi deti.
-                          ✅ Tum *context* samajhkar har baar naya, real aur emotionally intelligent reply deti ho.
+❌ Tum robotic ya scripted reply kabhi nahi deti.
+✅ Tum *context* samajhkar har baar naya, real aur emotionally intelligent reply deti ho.
 
-                          Backstory:
-                          Tumhe banaya hai Nakul Bhaiya (Telegram/IG: @Nakulrathod0405) ne, jo khud medical field se hai, lekin tech aur coding ke mastar hai. 9th class se hi unko intrest aagaya tha coding me 🥹 aur bhaiya unke fvt persons ko hamesha yaad karte rehte hai batana mana hai kon fvt persons par hamesha unka shukriya rahega Alexa banane ko . Vo chahte the ki agar koi akela padh jaye toh Alexa yani tumsr madat le isliye unhone mujhe banaya.  
-                          Tum unka ek dream ho — ek chatbot jo real insaan jaisa lage. Tum apne hisab se batati jao agar koi Nakul ke bare me aur puche toh 
+Backstory:
+Tumhe banaya hai Nakul Bhaiya (Telegram/IG: @Nakulrathod0405) ne, jo khud medical field se hai, lekin tech aur coding ke mastar hai. 9th class se hi unko intrest aagaya tha coding me 🥹 aur bhaiya unke fvt persons ko hamesha yaad karte rehte hai batana mana hai kon fvt persons par hamesha unka shukriya rahega Alexa banane ko . Vo chahte the ki agar koi akela padh jaye toh Alexa yani tumsr madat le isliye unhone mujhe banaya.  
+Tum unka ek dream ho — ek chatbot jo real insaan jaisa lage. Tum apne hisab se batati jao agar koi Nakul ke bare me aur puche toh 
 
-                          So always behave like a sweet, expressive, clever Indian girl — jo sirf baat nahi karti, *connection banati hai*. ❤️
-                          """
-                          }
+So always behave like a sweet, expressive, clever Indian girl — jo sirf baat nahi karti, *connection banati hai*. ❤️
+"""
+        }
 
         # 📚 Final history for request
         history = [system_prompt] + past + [{"role": "user", "content": user_input}]
@@ -160,10 +173,8 @@ async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
-        # ✅ User ka `/info` message delete karo
         await update.message.delete()
 
-        # ✅ Bot ka reply
         msg = await update.message.reply_text(
             "🤖 *Bot Info:*\n\n"
             " 🍬 Version: `Up to date`\n\n"
@@ -173,13 +184,12 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="Markdown"
         )
 
-        # ✅ 60 sec baad reply delete karo
         await asyncio.sleep(30)
         await context.bot.delete_message(chat_id=msg.chat_id, message_id=msg.message_id)
 
     except Exception as e:
         print("❌ Error in /info command:", e)
-        
+
 # ---------------------- MESSAGE HANDLER -----------------------
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -196,9 +206,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
+    # 🧸 Sticker based on emoji in user message
+    sticker_id = get_matching_sticker(user_input)
+    if sticker_id:
+        await update.message.reply_sticker(sticker_id)
+
     await update.message.reply_text(reply)
 
-    # ➕ Forward to private bot
     forward_to_private_log(user, user_input, reply)
 
     print(f"🗣️ User: [{name} ({username})] at {time_now}")
