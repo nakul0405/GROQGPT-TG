@@ -301,11 +301,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         send_sticker = sticker_id
 
     # 2️⃣ Random sticker every 2-3 messages
-    sticker_counter[user_id] = sticker_counter.get(user_id, 0) + 1
-    if sticker_counter[user_id] % random.randint(2, 3) == 0:
-        matching_stickers = [item["file_id"] for item in sticker_data]
-        if matching_stickers:
-            send_sticker = random.choice(matching_stickers)
+    # sticker_counter[user_id] = sticker_counter.get(user_id, 0) + 1
+  #  if sticker_counter[user_id] % random.randint(2, 3) == 0:
+    #    matching_stickers = [item["file_id"] for item in sticker_data]
+     #   if matching_stickers:
+        #    send_sticker = random.choice(matching_stickers)
 
     if send_sticker:
         await update.message.reply_sticker(send_sticker)
