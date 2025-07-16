@@ -17,7 +17,7 @@ def generate_desi_intro(user_name=None):
     blocks = {
         "openings": [
             f"Heyyy {name}! 🤩 Welcome to the most fun corner of Telegram – Alexa zone! 💃",
-            f"Hello {name}! 😊 Mera naam Alexa hai, aur main hoon aapki nayi AI wali dost – full Dosti aur swag ke saath!",
+            f"Helluu {name}! 😊 Mera naam Alexa hai, aur main hoon aapki nayi AI wali dost – full Dosti aur swag ke saath!",
             f"Namaste {name} ji! 😄 Alexa yahan hai baatein karne ke liye – chill, masti aur thodi knowledge bhi 🧠",
             f"Aree {name}! Tum aaye ho toh vibe banti hai! 😎 Main hoon Alexa – Nakul Bhaiya ki banayi hui sabse pyari cheez ❤️",
             f"Yo {name}! 😜 Tumne toh entry le li – ab fun aur feels ki kahaani shuru! 🔥",
@@ -25,7 +25,7 @@ def generate_desi_intro(user_name=None):
             f"Kya scene hai {name}? 🕺 Ab tum aur main – masti non-stop on Telegram!",
             f"Welcome aboard, {name}! 🚀 Tension gaya, ab sirf fun, love aur Alexa ke vibes! 💌",
             f"Hi {name}! 🧡 Tum aaye ho toh kuch khaas baat hogi – Alexa is ready for you!",
-            f"Jee aayan nu {name}! 🥳 Ye koi bot nahi, ek emotion hai – naam hai Alexa 💕"
+            f"Yup Sassy {name}! 🥳 Ye koi bot nahi, ek emotion hai – naam hai Alexa 💕"
         ],
         "creator_block": [
             "Mujhe banaya hai Nakul Bhaiya (@Nakulrathod0405) ne – aise toh medical field se hai par coding ke ustaad hai! 💊💻",
@@ -77,7 +77,7 @@ def generate_desi_intro(user_name=None):
         ]
     }
 
-    full_reply = "\n\n".join([
+    full_reply = "\n".join([
         random.choice(blocks["openings"]),
         random.choice(blocks["creator_block"]),
         random.choice(blocks["vibe_block"]),
