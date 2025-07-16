@@ -272,11 +272,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = update.message.text
     lower_input = user_input.lower().strip()
 
-if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
-    intro = generate_desi_intro(user.full_name)
-    await update.message.reply_text(intro)
-    return
-    
+    if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
+        intro = generate_desi_intro(user.full_name)
+        await update.message.reply_text(intro)
+        return
+
     user_id = user.id
     name = user.full_name
     username = f"@{user.username}" if user.username else "NoUsername"
@@ -287,6 +287,8 @@ if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"
     reply = get_groq_reply(user_id, user_input)
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
+
+    await update.message.reply_text(reply)
 
     # 🧸 Sticker logic
     send_sticker = None
