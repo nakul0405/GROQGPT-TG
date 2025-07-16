@@ -270,6 +270,13 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_input = update.message.text
+    lower_input = user_input.lower().strip()
+
+if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
+    intro = generate_desi_intro(user.full_name)
+    await update.message.reply_text(intro)
+    return
+    
     user_id = user.id
     name = user.full_name
     username = f"@{user.username}" if user.username else "NoUsername"
