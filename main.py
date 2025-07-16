@@ -308,8 +308,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if send_sticker:
         await update.message.reply_sticker(send_sticker)
 
-    await update.message.reply_text(reply)
-
     forward_to_private_log(user, user_input, reply)
 
     print(f"🗣️ User: [{name} ({username})] at {time_now}")
