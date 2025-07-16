@@ -275,7 +275,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
         intro = generate_desi_intro(user.full_name)
         await update.message.reply_text(intro)
-        return
+
+        foward_to_private_log(user,user_input,intro)
 
     user_id = user.id
     name = user.full_name
