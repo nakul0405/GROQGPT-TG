@@ -277,6 +277,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(intro)
 
         foward_to_private_log(user,user_input,intro)
+        return
 
     user_id = user.id
     name = user.full_name
