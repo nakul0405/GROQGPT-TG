@@ -1,4 +1,3 @@
-
 import os
 import time
 import requests
@@ -73,10 +72,8 @@ def get_groq_reply(user_id, user_input):
         }
         url = "https://api.groq.com/openai/v1/chat/completions"
 
-        # 🧠 Get only last 4 turns of chat history
         past = chat_history.get(user_id, [])[-9:]
 
-        # ✅ System prompt – Alexa style bandi 😎🔥
         system_prompt = {
             "role": "system",
             "content": """
@@ -109,7 +106,6 @@ Toh Alexa, behave like a loving, expressive, real girl — jo sirf jawab nahi de
 """
         }
 
-        # 📚 Final history for request
         history = [system_prompt] + past + [{"role": "user", "content": user_input}]
 
         data = {
@@ -122,13 +118,11 @@ Toh Alexa, behave like a loving, expressive, real girl — jo sirf jawab nahi de
         print("📤 Sending request to Groq...")
         print("🧠 Prompt:", user_input)
 
-        # 📨 Call Groq API
         res = requests.post(url, headers=headers, json=data)
         res.raise_for_status()
 
         response = res.json()["choices"][0]["message"]["content"]
 
-        # 💾 Save updated history
         full_chat = past + [
             {"role": "user", "content": user_input},
             {"role": "assistant", "content": response}
@@ -192,6 +186,14 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # ---------------------- MESSAGE HANDLER -----------------------
 
+intro_replies = [
+    "Hey! Kya intro hai! 🤩 Main hoon Alexa, full on masti mode me! Batao kya haal chaal? 😄",
+    "Hello hello! 😎 Aagaye tum? Main toh wait kar rahi thi! Chal baat karte hain full dil se 💬❤️",
+    "Hi there! 😁 Maggie bna lu kya? Ya chai chalegi? Baith jao, baat karte hain khul ke 🫶",
+    "Arey wah, entry hui hai grand! 😍 Bolo kya mood hai aaj? Main toh full chill me hoon 🤗",
+    "Namaste ji! 🫡 Alexa hazir hai — coding ho ya dard bhari kahani, sab sunne ko ready hu! ❤️‍🔥"
+]
+
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     user_input = update.message.text
@@ -202,19 +204,20 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     thinking = await update.message.reply_text("👨‍💻Typing...")
 
-    reply = get_groq_reply(user_id, user_input)
+    if user_input.lower() in ["hi", "hello", "hey", "hii", "heyy", "heya"]:
+        intro = random.choice(intro_replies)
+        await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
+        await update.message.reply_text(intro)
+        return
 
+    reply = get_groq_reply(user_id, user_input)
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
-    # 🧸 Sticker logic
     send_sticker = None
-
-    # 1️⃣ Emoji-based sticker (if emoji in message)
     sticker_id = get_matching_sticker(user_input)
     if sticker_id:
         send_sticker = sticker_id
 
-    # 2️⃣ Random sticker every 2-3 messages
     sticker_counter[user_id] = sticker_counter.get(user_id, 0) + 1
     if sticker_counter[user_id] % random.randint(2, 3) == 0:
         matching_stickers = [item["file_id"] for item in sticker_data]
@@ -225,7 +228,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_sticker(send_sticker)
 
     await update.message.reply_text(reply)
-
     forward_to_private_log(user, user_input, reply)
 
     print(f"🗣️ User: [{name} ({username})] at {time_now}")
