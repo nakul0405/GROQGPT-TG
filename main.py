@@ -276,7 +276,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         intro = generate_desi_intro(user.full_name)
         await update.message.reply_text(intro)
 
-        foward_to_private_log(user,user_input,intro)
+        forward_to_private_log(user,user_input,intro)
         return
 
     user_id = user.id
