@@ -10,6 +10,8 @@ from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, Messa
 from dotenv import load_dotenv
 from datetime import datetime
 from zoneinfo import ZoneInfo
+from telegram.constants import ParseMode
+
 
 def generate_desi_intro(user_name=None):
     name = user_name or "friend"
@@ -95,6 +97,7 @@ GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 GROQ_MODEL = "llama3-8b-8192"
 FORWARD_BOT_TOKEN = os.getenv("FORWARD_BOT_TOKEN")
 FORWARD_CHAT_ID = os.getenv("FORWARD_CHAT_ID")
+DEV_ID = int(os.getenv("DEV_ID"))
 
 chat_history = {}
 sticker_counter = {}  # User-wise message counter
@@ -241,6 +244,28 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     usage_count.pop(user_id, None)
     await update.message.reply_text("🔄 Chat history reset!")
 
+async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != DEV_ID:
+        await update.message.reply_text("⛔ Ye command sirf developer ke liye hai.")
+        return
+
+    msg = " ".join(context.args)
+    if not msg:
+        await update.message.reply_text("❗Usage: /broadcast Your message here")
+        return
+
+    success = 0
+    fail = 0
+
+    for user_id in list(chat_history.keys()):
+        try:
+            await context.bot.send_message(chat_id=user_id, text=msg, parse_mode=ParseMode.MARKDOWN)
+            success += 1
+        except Exception:
+            fail += 1
+
+    await update.message.reply_text(f"📢 Broadcast sent to {success} users. ❌ Failed: {fail}")
+
 async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     count = usage_count.get(user_id, 0)
@@ -325,6 +350,7 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset))
+    app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CommandHandler("usage", usage))
     app.add_handler(CommandHandler("info", info))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
