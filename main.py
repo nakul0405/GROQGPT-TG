@@ -99,6 +99,7 @@ FORWARD_CHAT_ID = os.getenv("FORWARD_CHAT_ID")
 chat_history = {}
 sticker_counter = {}  # User-wise message counter
 usage_count = {}
+manual_override = False
 
 # 🧸 Load emoji-sticker mappings from stickers.json
 with open("stickers.json", "r", encoding="utf-8") as f:
@@ -241,6 +242,20 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     usage_count.pop(user_id, None)
     await update.message.reply_text("🔄 Chat history reset!")
 
+async def manual_on(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.username != "Nakulrathod0405":
+        await update.message.reply_text("⛔ Ye command sirf developer ke liye hai.")
+        return
+
+    global manual_override
+    manual_override = True
+    await update.message.reply_text("🛑 Alexa band ho gayi hai. Ab reply aap manually de sakte ho.")
+
+async def manual_off(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global manual_override
+    manual_override = False
+    await update.message.reply_text("✅ Alexa wapas chalu ho gayi hai. Ab vo reply degi.")
+
 async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     count = usage_count.get(user_id, 0)
@@ -268,15 +283,21 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ---------------------- MESSAGE HANDLER -----------------------
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    global manual_override  # Yeh zaruri hai
+
     user = update.effective_user
     user_input = update.message.text
     lower_input = user_input.lower().strip()
 
+    # ✅ Check for manual mode ON
+    if manual_override:
+        print("🛑 Alexa is in manual mode. No reply sent.")
+        return
+
     if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
         intro = generate_desi_intro(user.full_name)
         await update.message.reply_text(intro)
-
-        forward_to_private_log(user,user_input,intro)
+        forward_to_private_log(user, user_input, intro)
         return
 
     user_id = user.id
@@ -289,6 +310,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply = get_groq_reply(user_id, user_input)
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
+
+    # ... (baki ka tera reply aur sticker logic yahin continue kare)
 
 
     # 🧸 Sticker logic
@@ -325,6 +348,8 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset))
+    app.add_handler(CommandHandler("manual_on", manual_on))
+    app.add_handler(CommandHandler("manual_off", manual_off)) 
     app.add_handler(CommandHandler("usage", usage))
     app.add_handler(CommandHandler("info", info))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
