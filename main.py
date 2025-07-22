@@ -116,6 +116,7 @@ def forward_to_private_log(user, user_input, bot_reply):
     try:
         name = user.full_name
         username = f"@{user.username}" if user.username else "NoUsername"
+        user_id = user.id
         time_now = datetime.now().strftime("%I:%M %p")
 
         text = f"""📩 *New Alexa Chat*\n
