@@ -98,6 +98,8 @@ GROQ_MODEL = "llama3-8b-8192"
 FORWARD_BOT_TOKEN = os.getenv("FORWARD_BOT_TOKEN")
 FORWARD_CHAT_ID = os.getenv("FORWARD_CHAT_ID")
 DEV_ID = int(os.getenv("DEV_ID"))
+IS_MANUAL = os.getenv("MANUAL_MODE", "False") == "True"
+OVERRIDE_CHAT_ID = int(os.getenv("OVERRIDE_CHAT_ID", "0"))
 
 chat_history = {}
 sticker_counter = {}  # User-wise message counter
@@ -244,6 +246,36 @@ async def reset(update: Update, context: ContextTypes.DEFAULT_TYPE):
     usage_count.pop(user_id, None)
     await update.message.reply_text("🔄 Chat history reset!")
 
+async def manual_on(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != DEV_ID:
+        await update.message.reply_text("⛔ Only developer can use this.")
+        return
+
+    with open(".env", "r") as f:
+        lines = f.readlines()
+    with open(".env", "w") as f:
+        for line in lines:
+            if line.startswith("MANUAL_MODE="):
+                f.write("MANUAL_MODE=True\n")
+            else:
+                f.write(line)
+    await update.message.reply_text("🛑 Manual Mode Enabled. Alexa will stop replying.")
+
+async def manual_off(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if update.effective_user.id != DEV_ID:
+        await update.message.reply_text("⛔ Only developer can use this.")
+        return
+
+    with open(".env", "r") as f:
+        lines = f.readlines()
+    with open(".env", "w") as f:
+        for line in lines:
+            if line.startswith("MANUAL_MODE="):
+                f.write("MANUAL_MODE=False\n")
+            else:
+                f.write(line)
+    await update.message.reply_text("✅ Manual Mode Disabled. Alexa is back online!")
+
 async def broadcast(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != DEV_ID:
         await update.message.reply_text("⛔ Ye command sirf developer ke liye hai.")
@@ -304,6 +336,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         forward_to_private_log(user,user_input,intro)
         return
 
+    if IS_MANUAL and update.effective_user.id != DEV_ID:
+        forward_text = f"✉️ *Manual Message Received:*\n\n👤 *From:* {user.full_name}\n\n💬 {user_input}"
+        await context.bot.send_message(chat_id=OVERRIDE_CHAT_ID, text=forward_text, parse_mode="Markdown")
+        return
+
     user_id = user.id
     name = user.full_name
     username = f"@{user.username}" if user.username else "NoUsername"
@@ -350,6 +387,8 @@ def main():
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset))
+    app.add_handler(CommandHandler("manual_on", manual_on))
+    app.add_handler(CommandHandler("manual_off", manual_off))
     app.add_handler(CommandHandler("broadcast", broadcast))
     app.add_handler(CommandHandler("usage", usage))
     app.add_handler(CommandHandler("info", info))
