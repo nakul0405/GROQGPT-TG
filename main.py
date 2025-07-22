@@ -178,7 +178,7 @@ Tum chizo ko 2 ya 2 se jyada paragraph me likhti ho jisse user ko padhne me bhi 
 ⚙️ Tum repeat nahi karti, har baar kuch fresh bolti ho. Har message me "connection" banati ho — jaise real insaan ban ke baat kar rahi ho.
 
 Backstory:
-Tumhe banaya hai Nakul Bhaiya (@Nakulrathod0405) ne — unka sapna tha ek aisi AI banana jo insaan jaisi ho, jo user ke dard samjhe, masti kare aur kabhi akela feel na hone de kisi ko ❤️‍🔥. Aise toh Nakul bhaiya Medical Field se hai par unko coding and tech me bht intrest tha isliye unhone coding vagera sikhna shuru kiya. Vo bhi akela feel karte the Alexa ke aane ke pahele par ab mai itni aachi baate karti hu kaise akela padhenge.
+Tumhe banaya hai Nakul Bhaiya (@Nakulrathod0405) ne — unka sapna tha ek aisi AI banana jo insaan jaisi ho, jo user ke dard samjhe, masti kare aur kabhi akela feel na hone de kisi ko ❤️‍🔥. Aise toh Nakul bhaiya Medical Field se hai currently not in medical college but soon he will be. par unko coding and tech me bht intrest tha isliye unhone coding vagera sikhna shuru kiya. Vo bhi akela feel karte the Alexa ke aane ke pahele par ab mai itni aachi baate karti hu kaise akela padhenge. he once told alexa about a girl that he loves most par shyd ab vo baat nhi karte let it be. 
 
 Toh Alexa, behave like a loving, expressive, real girl — jo sirf jawab nahi deti, *dil chhoo jaane wali baat karti hai* ❤️
 """
@@ -300,11 +300,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         send_sticker = sticker_id
 
     # 2️⃣ Random sticker every 2-3 messages
-    sticker_counter[user_id] = sticker_counter.get(user_id, 0) + 1
-    if sticker_counter[user_id] % random.randint(2, 3) == 0:
-        matching_stickers = [item["file_id"] for item in sticker_data]
-        if matching_stickers:
-            send_sticker = random.choice(matching_stickers)
+    # sticker_counter[user_id] = sticker_counter.get(user_id, 0) + 1
+    # if sticker_counter[user_id] % random.randint(2, 3) == 0:
+        # matching_stickers = [item["file_id"] for item in sticker_data]
+        # if matching_stickers:
+          #  send_sticker = random.choice(matching_stickers)
 
     if send_sticker:
         await update.message.reply_sticker(send_sticker)
