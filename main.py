@@ -91,8 +91,8 @@ def generate_desi_intro(user_name=None):
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
-OPENROUTER_MODEL = "nous/hermes-2-pro"
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+GROQ_MODEL = "llama3-8b-8192"
 FORWARD_BOT_TOKEN = os.getenv("FORWARD_BOT_TOKEN")
 FORWARD_CHAT_ID = os.getenv("FORWARD_CHAT_ID")
 
@@ -140,14 +140,13 @@ def forward_to_private_log(user, user_input, bot_reply):
     except Exception as e:
         print("❌ Error forwarding:", e)
 
-def get_openrouter_reply(user_id, user_input):
+def get_groq_reply(user_id, user_input):
     try:
         headers = {
-            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
-            "HTTP-Referer": "https://t.me/AlexabyNakul_bot",    # Apne bot ka username dalo bhai  
+            "Authorization": f"Bearer {GROQ_API_KEY}",
             "Content-Type": "application/json"
         }
-        url = "https://openrouter.ai/api/v1/chat/completions"
+        url = "https://api.groq.com/openai/v1/chat/completions"
 
         # 🧠 Get only last 4 turns of chat history
         past = chat_history.get(user_id, [])[-9:]
@@ -174,7 +173,7 @@ Tum chizo ko 2 ya 2 se jyada paragraph me likhti ho jisse user ko padhne me bhi 
 - Situation ke hisaab se tone, word choice aur emoji change karta hai.
 - Kabhi robotic, repeatative ya boring nahi hota.
 - Ekdum human jaisa — relatable, expressive, aur full of emotions hota hai.
-- Har tarah ka emoji use karti ho Baat karte wakt alag alag tarah ke emoji. Don't use 😊 this emoji use different kind of emoji. 
+- Har tarah ka emoji use karti ho Baat karte wakt alag alag tarah ke emoji. but Avoid this emoji fully '😊'
 - Tum mujhe, tumse, aap se, main se zyada *Mujhe, tumhare sath, mere hisaab se* jaisi wording use karti ho.
 
 ⚙️ Tum repeat nahi karti, har baar kuch fresh bolti ho. Har message me "connection" banati ho — jaise real insaan ban ke baat kar rahi ho.
@@ -190,7 +189,7 @@ Toh Alexa, behave like a loving, expressive, real girl — jo sirf jawab nahi de
         history = [system_prompt] + past + [{"role": "user", "content": user_input}]
 
         data = {
-            "model": OPENROUTER_MODEL,
+            "model": GROQ_MODEL,
             "messages": history,
             "temperature": 0.85,
             "top_p": 1
@@ -218,7 +217,7 @@ Toh Alexa, behave like a loving, expressive, real girl — jo sirf jawab nahi de
     except Exception as e:
         print("❌ ERROR while calling Groq:")
         traceback.print_exc()
-        return "Hey, Use Alexa Aftersome time Developer might been installing a update Thanks For Your patience 🥺"
+        return "🥲 Alexa thoda confuse ho gayi yaar... thoda ruk ja, phir se try karo! 💔"
 
 # ---------------------- COMMANDS -----------------------
 
@@ -255,9 +254,9 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = await update.message.reply_text(
             "🤖 *Bot Info:*\n\n"
             " 🍬 Version: `Up to date`\n\n"
-            f" 👩‍⚖️ Model: `{OPENROUTER_MODEL}`\n\n"
+            f" 👩‍⚖️ Model: `{GROQ_MODEL}`\n\n"
             " 👨‍💻 Developer: [Nakul Rathod](https://t.me/Nakulrathod0405) 🫶🏻\n\n"
-            " 🧬 API: `https://openrouter.ai/api/v1/chat/completions`",
+            " 🧬 API: `https://api.groq.com/openai/v1/chat/completions`",
             parse_mode="Markdown"
         )
 
@@ -288,7 +287,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     thinking = await update.message.reply_text("👨‍💻Typing...")
 
-    reply = get_openrouter_reply(user_id, user_input)
+    reply = get_groq_reply(user_id, user_input)
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
