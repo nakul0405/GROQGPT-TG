@@ -190,7 +190,7 @@ Toh Alexa, behave like a loving, expressive, real girl — jo sirf jawab nahi de
         history = [system_prompt] + past + [{"role": "user", "content": user_input}]
 
         data = {
-            "model": GROQ_MODEL,
+            "model": nous/hermes-2-pro,
             "messages": history,
             "temperature": 0.85,
             "top_p": 1
