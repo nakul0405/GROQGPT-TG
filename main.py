@@ -91,8 +91,8 @@ def generate_desi_intro(user_name=None):
 load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = "nous/hermes-2-pro"
+OPENROUTER_API_KEY = os.getenv("GROQ_API_KEY")
+OPENROUTER_MODEL = "nous/hermes-2-pro"
 FORWARD_BOT_TOKEN = os.getenv("FORWARD_BOT_TOKEN")
 FORWARD_CHAT_ID = os.getenv("FORWARD_CHAT_ID")
 
@@ -140,10 +140,10 @@ def forward_to_private_log(user, user_input, bot_reply):
     except Exception as e:
         print("❌ Error forwarding:", e)
 
-def get_groq_reply(user_id, user_input):
+def get_openrouter_reply(user_id, user_input):
     try:
         headers = {
-            "Authorization": f"Bearer {GROQ_API_KEY}",
+            "Authorization": f"Bearer {OPENROUTER_API_KEY}",
             "HTTP-Referer": "https://t.me/AlexabyNakul_bot",    # Apne bot ka username dalo bhai  
             "Content-Type": "application/json"
         }
@@ -255,7 +255,7 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = await update.message.reply_text(
             "🤖 *Bot Info:*\n\n"
             " 🍬 Version: `Up to date`\n\n"
-            f" 👩‍⚖️ Model: `{GROQ_MODEL}`\n\n"
+            f" 👩‍⚖️ Model: `{OPENROUTER_MODEL}`\n\n"
             " 👨‍💻 Developer: [Nakul Rathod](https://t.me/Nakulrathod0405) 🫶🏻\n\n"
             " 🧬 API: `https://openrouter.ai/api/v1/chat/completions`",
             parse_mode="Markdown"
