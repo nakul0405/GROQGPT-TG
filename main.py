@@ -190,7 +190,7 @@ Toh Alexa, behave like a loving, expressive, real girl — jo sirf jawab nahi de
         history = [system_prompt] + past + [{"role": "user", "content": user_input}]
 
         data = {
-            "model": "nous-hermes-2-pro",
+            "model": OPENROUTER_MODEL,
             "messages": history,
             "temperature": 0.85,
             "top_p": 1
@@ -288,7 +288,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     thinking = await update.message.reply_text("👨‍💻Typing...")
 
-    reply = get_groq_reply(user_id, user_input)
+    reply = get_openrouter_reply(user_id, user_input)
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
