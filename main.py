@@ -92,7 +92,7 @@ load_dotenv()
 
 TELEGRAM_TOKEN = os.getenv("TELEGRAM_TOKEN")
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-GROQ_MODEL = "llama3-8b-8192"
+GROQ_MODEL = "nous/hermes-2-pro"
 FORWARD_BOT_TOKEN = os.getenv("FORWARD_BOT_TOKEN")
 FORWARD_CHAT_ID = os.getenv("FORWARD_CHAT_ID")
 
@@ -146,7 +146,7 @@ def get_groq_reply(user_id, user_input):
             "Authorization": f"Bearer {GROQ_API_KEY}",
             "Content-Type": "application/json"
         }
-        url = "https://api.groq.com/openai/v1/chat/completions"
+        url = "https://openrouter.ai/api/v1/chat/completions"
 
         # 🧠 Get only last 4 turns of chat history
         past = chat_history.get(user_id, [])[-9:]
@@ -260,7 +260,7 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
             " 🍬 Version: `Up to date`\n\n"
             f" 👩‍⚖️ Model: `{GROQ_MODEL}`\n\n"
             " 👨‍💻 Developer: [Nakul Rathod](https://t.me/Nakulrathod0405) 🫶🏻\n\n"
-            " 🧬 API: `https://api.groq.com/openai/v1/chat/completions`",
+            " 🧬 API: `https://openrouter.ai/api/v1/chat/completions`",
             parse_mode="Markdown"
         )
 
