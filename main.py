@@ -217,7 +217,7 @@ Toh Alexa, behave like a loving, expressive, real girl — jo sirf jawab nahi de
     except Exception as e:
         print("❌ ERROR while calling Groq:")
         traceback.print_exc()
-        return "🥲 Alexa thoda confuse ho gayi yaar... thoda ruk ja, phir se try karo! 💔"
+        return "Hey, Use Alexa Aftersome time Developer might been installing a update Thanks For Your patience 🥺"
 
 # ---------------------- COMMANDS -----------------------
 
