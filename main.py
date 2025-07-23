@@ -144,7 +144,7 @@ def get_groq_reply(user_id, user_input):
     try:
         headers = {
             "Authorization": f"Bearer {GROQ_API_KEY}",
-            "HTTP-Referer": "https://t.me/AlexabyNakul_bot"
+            "HTTP-Referer": "https://t.me/AlexabyNakul_bot",    # Apne bot ka username dalo bhai  
             "Content-Type": "application/json"
         }
         url = "https://openrouter.ai/api/v1/chat/completions"
