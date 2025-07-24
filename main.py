@@ -100,9 +100,6 @@ SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT")
 chat_history = {}
 sticker_counter = {}  # User-wise message counter
 usage_count = {}
-listening_mode = {}  # user_id: True/False
-last_user_message_time = {}  # user_id: timestamp 
-message_buffer = {}
 
 # 🧸 Load emoji-sticker mappings from stickers.json
 with open("stickers.json", "r", encoding="utf-8") as f:
@@ -223,13 +220,6 @@ async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     count = usage_count.get(user_id, 0)
     await update.message.reply_text(f"📊 Total messages: {count}")
 
-async def listening_mode_on(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    user_id = update.effective_user.id
-    listening_mode[user_id] = True
-    await update.message.reply_text("🎧 *Listening Mode ON*\n\nTell me everything — I'm here, truly listening.\n\nWhen you're done, just say `done` and I’ll tell you how I felt reading it. 💛",     
-                                    parse_mode="Markdown" 
-    )
-
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await update.message.delete()
@@ -253,67 +243,37 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
-    user_id = user.id
     user_input = update.message.text
     lower_input = user_input.lower().strip()
 
-    # Handle greeting
     if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
         intro = generate_desi_intro(user.full_name)
         await update.message.reply_text(intro)
-        forward_to_private_log(user, user_input, intro)
+
+        forward_to_private_log(user,user_input,intro)
         return
 
-    # Endings for listening mode
-    endings = ["done", "that's it", "bas", "ho gaya", "ab kya", "enough", "finished"]
+    user_id = user.id
+    name = user.full_name
+    username = f"@{user.username}" if user.username else "NoUsername"
+    time_now = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y, %I:%M %p")
 
-    # 👂 Listening mode active
-    if listening_mode.get(user_id):
-        if user_id not in message_buffer:
-                                  message_buffer[user_id] = []
-
-    message_buffer[user_id].append(user_input)
-    
-        last_user_message_time[user_id] = datetime.now()
-
-        async def check_and_reply():
-            await asyncio.sleep(15)  # ⏱️ Wait 15 seconds
-            time_diff = datetime.now() - last_user_message_time.get(user_id, datetime.now())
-            if time_diff.total_seconds() >= 14:
-                full_input = " ".join(message_buffer[user_id])
-                message_buffer[user_id] = []
-                listening_mode[user_id] = False
-
-                await update.message.reply_text("Tumhari har baat sun li... Ab kuch bolti hoon 🥺")
-                thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
-
-                reply = get_groq_reply(user_id, full_input)
-
-                await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
-
-                final_reply = (
-                f"🫂 Tumne likha:\n\n\"{full_input}\"\n\n"
-                f"❤️ {reply}"
-                )
-                await update.message.reply_text(final_reply)
-
-    asyncio.create_task(check_and_reply())
-    return
-
-    # Normal mode
-    thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
+    thinking = await update.message.reply_text("👨‍💻Typing...")
 
     reply = get_groq_reply(user_id, user_input)
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
+
     # 🧸 Sticker logic
     send_sticker = None
+
+    # 1️⃣ Emoji-based sticker (if emoji in message)
     sticker_id = get_matching_sticker(user_input)
     if sticker_id:
         send_sticker = sticker_id
 
-        # 2️⃣ Random sticker every 2-3 messages
+    # 2️⃣ Random sticker every 2-3 messages
     # sticker_counter[user_id] = sticker_counter.get(user_id, 0) + 1
     # if sticker_counter[user_id] % random.randint(2, 3) == 0:
         # matching_stickers = [item["file_id"] for item in sticker_data]
@@ -324,7 +284,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_sticker(send_sticker)
 
     await update.message.reply_text(reply)
-    
+
     forward_to_private_log(user, user_input, reply)
 
     print(f"🗣️ User: [{name} ({username})] at {time_now}")
@@ -340,7 +300,6 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("usage", usage))
-    app.add_handler(CommandHandler("listening", listening_mode_on))
     app.add_handler(CommandHandler("info", info))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
