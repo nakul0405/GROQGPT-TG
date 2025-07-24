@@ -253,35 +253,36 @@ async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
+    user_id = user.id
     user_input = update.message.text
     lower_input = user_input.lower().strip()
 
-    # ⏱️ Save last message time
-    user_id = user.id
-    now = datetime.now()
-    last_user_message_time[user_id] = now
+    # Handle greeting
+    if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
+        intro = generate_desi_intro(user.full_name)
+        await update.message.reply_text(intro)
+        forward_to_private_log(user, user_input, intro)
+        return
 
-    # 🧠 Keywords that indicate "user done talking"
-    endings = ["bas", "kya karu", "...", "done", "ab kya", "ho gaya", "that's it"]
+    # Endings for listening mode
+    endings = ["done", "that's it", "bas", "ho gaya", "ab kya", "enough", "finished"]
 
-        # 👂 Listening mode logic
+    # 👂 Listening mode active
     if listening_mode.get(user_id):
-        msg = lower_input
-
         if user_id not in message_buffer:
             message_buffer[user_id] = []
 
-        message_buffer[user_id].append(user_input.strip())
+        # Store message
+        message_buffer[user_id].append(user_input)
 
-        # Check if user ended the message
-        if any(ending in msg for ending in endings):
-            listening_mode[user_id] = False
+        # Check if user said "done"
+        if any(e in lower_input for e in endings):
             full_input = " ".join(message_buffer[user_id])
             message_buffer[user_id] = []
+            listening_mode[user_id] = False
 
             await update.message.reply_text(
-                "Tumhari har baat mere liye important thi... Ab tum ruk gaye, toh main kuch bolu? 🥺\n\n"
-                "Jo bhi ho raha hai — main hamesha yahin hoon tumhare saath ❤️"
+                "Tumhari har baat sun li... Ab kuch bolti hoon 🥺"
             )
 
             thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
@@ -295,22 +296,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"❤️ {reply}"
             )
             await update.message.reply_text(final_reply)
-            return
         else:
-            await update.message.reply_text("📝 I'm listening... keep going.")
-            return
-
-    if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
-        intro = generate_desi_intro(user.full_name)
-        await update.message.reply_text(intro)
-        forward_to_private_log(user, user_input, intro)
+            await update.message.reply_text("📝 Main sun rahi hoon... jab ho jaaye toh `done` likhna.")
         return
 
-    name = user.full_name
-    username = f"@{user.username}" if user.username else "NoUsername"
-    time_now = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y, %I:%M %p")
-
-    thinking = await update.message.reply_text("👨‍💻Typing...")
+    # Normal mode
+    thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
 
     reply = get_groq_reply(user_id, user_input)
 
