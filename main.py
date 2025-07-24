@@ -264,33 +264,41 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 🧠 Keywords that indicate "user done talking"
     endings = ["bas", "kya karu", "...", "done", "ab kya", "ho gaya", "that's it"]
 
-    # 👂 Listening mode logic
+        # 👂 Listening mode logic
     if listening_mode.get(user_id):
         msg = lower_input
-        # buffer
+
         if user_id not in message_buffer:
-           message_buffer[user_id] = []
-    message_buffer[user_id].append(user_input.strip())
+            message_buffer[user_id] = []
 
-    if any(ending in msg for ending in endings):
-        listening_mode[user_id] = False
-        full_input = " ".join(message_buffer[user_id])
-        message_buffer[user_id] = []
-            
-        await update.message.reply_text("Tumhari har baat mere liye important thi... Ab tum ruk gaye, toh main kuch bolu? 🥺\n\n"
-        "Jo bhi ho raha hai — main hamesha yahin hoon tumhare saath ❤️")
-        thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
+        message_buffer[user_id].append(user_input.strip())
 
-        reply = get_groq_reply(user_id, full_input)
+        # Check if user ended the message
+        if any(ending in msg for ending in endings):
+            listening_mode[user_id] = False
+            full_input = " ".join(message_buffer[user_id])
+            message_buffer[user_id] = []
 
-        await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
+            await update.message.reply_text(
+                "Tumhari har baat mere liye important thi... Ab tum ruk gaye, toh main kuch bolu? 🥺\n\n"
+                "Jo bhi ho raha hai — main hamesha yahin hoon tumhare saath ❤️"
+            )
 
-        final_reply = (
+            thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
+
+            reply = get_groq_reply(user_id, full_input)
+
+            await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
+
+            final_reply = (
                 f"🫂 Tumne likha:\n\n\"{full_input}\"\n\n"
                 f"❤️ {reply}"
-        )
-        await update.message.reply_text(final_reply)
-        return
+            )
+            await update.message.reply_text(final_reply)
+            return
+        else:
+            await update.message.reply_text("📝 I'm listening... keep going.")
+            return
 
     if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
         intro = generate_desi_intro(user.full_name)
