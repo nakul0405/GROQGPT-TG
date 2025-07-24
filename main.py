@@ -269,22 +269,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # 👂 Listening mode active
     if listening_mode.get(user_id):
-        if user_id not in message_buffer:
-            message_buffer[user_id] = []
+    if user_id not in message_buffer:
+        message_buffer[user_id] = []
 
-        # Store message
-        message_buffer[user_id].append(user_input)
+    message_buffer[user_id].append(user_input)
+    
+    # Update last time user sent message
+    last_user_message_time[user_id] = datetime.now()
 
-        # Check if user said "done"
-        if any(e in lower_input for e in endings):
+    async def check_and_reply():
+        await asyncio.sleep(15)  # ⏱️ Wait 15 seconds
+        time_diff = datetime.now() - last_user_message_time.get(user_id, datetime.now())
+        if time_diff.total_seconds() >= 14:
             full_input = " ".join(message_buffer[user_id])
             message_buffer[user_id] = []
             listening_mode[user_id] = False
 
-            await update.message.reply_text(
-                "Tumhari har baat sun li... Ab kuch bolti hoon 🥺"
-            )
-
+            await update.message.reply_text("Tumhari har baat sun li... Ab kuch bolti hoon 🥺")
             thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
 
             reply = get_groq_reply(user_id, full_input)
@@ -296,9 +297,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 f"❤️ {reply}"
             )
             await update.message.reply_text(final_reply)
-        else:
-            await update.message.reply_text("📝 Main sun rahi hoon... jab ho jaaye toh `done` likhna.")
-        return
+
+    asyncio.create_task(check_and_reply())
+    return
 
     # Normal mode
     thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
