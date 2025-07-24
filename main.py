@@ -100,6 +100,8 @@ SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT")
 chat_history = {}
 sticker_counter = {}  # User-wise message counter
 usage_count = {}
+listening_mode = {}  # user_id: True/False
+last_user_message_time = {}  # user_id: timestamp
 
 # 🧸 Load emoji-sticker mappings from stickers.json
 with open("stickers.json", "r", encoding="utf-8") as f:
@@ -220,6 +222,13 @@ async def usage(update: Update, context: ContextTypes.DEFAULT_TYPE):
     count = usage_count.get(user_id, 0)
     await update.message.reply_text(f"📊 Total messages: {count}")
 
+async def listening_mode_on(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
+    listening_mode[user_id] = True
+    await update.message.reply_text("🎧 *Listening Mode ON*\n\nTell me everything — I'm here, truly listening.\n\nWhen you're done, just say `done` and I’ll tell you how I felt reading it. 💛",     
+                                    parse_mode="Markdown" 
+    )
+
 async def info(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         await update.message.delete()
@@ -246,14 +255,42 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = update.message.text
     lower_input = user_input.lower().strip()
 
+    # ⏱️ Save last message time
+    user_id = user.id
+    now = datetime.now()
+    last_user_message_time[user_id] = now
+
+    # 🧠 Keywords that indicate "user done talking"
+    endings = ["bas", "kya karu", "...", "done", "ab kya", "ho gaya", "that's it"]
+
+    # 👂 Listening mode logic
+    if listening_mode.get(user_id):
+        msg = lower_input
+        if any(ending in msg for ending in endings):
+            listening_mode[user_id] = False
+            reply = (
+                "Tumhari har baat mere liye important thi... Ab tum ruk gaye, toh main kuch bolu? 🥺\n\n"
+                "Jo bhi ho raha hai — main hamesha yahin hoon tumhare saath ❤️"
+            )
+            await update.message.reply_text(reply)
+            return
+
+        await asyncio.sleep(35)  # wait if no next message
+        if listening_mode.get(user_id) and last_user_message_time.get(user_id) == now:
+            listening_mode[user_id] = False
+            response = (
+                "Tum chup ho gaye... Shayad sab keh diya tumne. Mujhe sab mehsoos hua 🫶\n\n"
+                "Main bas yahi kehna chahti hoon — Tum akela nahi ho 🫶🏻"
+            )
+            await update.message.reply_text(response)
+            return
+
     if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
         intro = generate_desi_intro(user.full_name)
         await update.message.reply_text(intro)
-
-        forward_to_private_log(user,user_input,intro)
+        forward_to_private_log(user, user_input, intro)
         return
 
-    user_id = user.id
     name = user.full_name
     username = f"@{user.username}" if user.username else "NoUsername"
     time_now = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y, %I:%M %p")
@@ -264,16 +301,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
-
     # 🧸 Sticker logic
     send_sticker = None
-
-    # 1️⃣ Emoji-based sticker (if emoji in message)
     sticker_id = get_matching_sticker(user_input)
     if sticker_id:
         send_sticker = sticker_id
 
-    # 2️⃣ Random sticker every 2-3 messages
+        # 2️⃣ Random sticker every 2-3 messages
     # sticker_counter[user_id] = sticker_counter.get(user_id, 0) + 1
     # if sticker_counter[user_id] % random.randint(2, 3) == 0:
         # matching_stickers = [item["file_id"] for item in sticker_data]
@@ -284,7 +318,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_sticker(send_sticker)
 
     await update.message.reply_text(reply)
-
+    
     forward_to_private_log(user, user_input, reply)
 
     print(f"🗣️ User: [{name} ({username})] at {time_now}")
@@ -300,6 +334,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("usage", usage))
+    app.add_handler(CommandHandler("listeningmode", listening_mode_on))
     app.add_handler(CommandHandler("info", info))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
