@@ -274,7 +274,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     message_buffer[user_id].append(user_input)
     
-        # Update last time user sent message
         last_user_message_time[user_id] = datetime.now()
 
         async def check_and_reply():
