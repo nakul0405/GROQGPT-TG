@@ -269,8 +269,8 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         msg = lower_input
         # buffer
         if user_id not in message_buffer:
-        message_buffer[user_id] = []
-        message_buffer[user_id].append(user_input.strip())
+           message_buffer[user_id] = []
+    message_buffer[user_id].append(user_input.strip())
 
         if any(ending in msg for ending in endings):
             listening_mode[user_id] = False
