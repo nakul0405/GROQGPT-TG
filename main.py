@@ -269,34 +269,34 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # 👂 Listening mode active
     if listening_mode.get(user_id):
-    if user_id not in message_buffer:
-        message_buffer[user_id] = []
+        if user_id not in message_buffer:
+                                  message_buffer[user_id] = []
 
     message_buffer[user_id].append(user_input)
     
-    # Update last time user sent message
-    last_user_message_time[user_id] = datetime.now()
+        # Update last time user sent message
+        last_user_message_time[user_id] = datetime.now()
 
-    async def check_and_reply():
-        await asyncio.sleep(15)  # ⏱️ Wait 15 seconds
-        time_diff = datetime.now() - last_user_message_time.get(user_id, datetime.now())
-        if time_diff.total_seconds() >= 14:
-            full_input = " ".join(message_buffer[user_id])
-            message_buffer[user_id] = []
-            listening_mode[user_id] = False
+        async def check_and_reply():
+            await asyncio.sleep(15)  # ⏱️ Wait 15 seconds
+            time_diff = datetime.now() - last_user_message_time.get(user_id, datetime.now())
+            if time_diff.total_seconds() >= 14:
+                full_input = " ".join(message_buffer[user_id])
+                message_buffer[user_id] = []
+                listening_mode[user_id] = False
 
-            await update.message.reply_text("Tumhari har baat sun li... Ab kuch bolti hoon 🥺")
-            thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
+                await update.message.reply_text("Tumhari har baat sun li... Ab kuch bolti hoon 🥺")
+                thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
 
-            reply = get_groq_reply(user_id, full_input)
+                reply = get_groq_reply(user_id, full_input)
 
-            await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
+                await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
 
-            final_reply = (
+                final_reply = (
                 f"🫂 Tumne likha:\n\n\"{full_input}\"\n\n"
                 f"❤️ {reply}"
-            )
-            await update.message.reply_text(final_reply)
+                )
+                await update.message.reply_text(final_reply)
 
     asyncio.create_task(check_and_reply())
     return
