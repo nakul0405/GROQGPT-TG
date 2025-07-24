@@ -101,7 +101,8 @@ chat_history = {}
 sticker_counter = {}  # User-wise message counter
 usage_count = {}
 listening_mode = {}  # user_id: True/False
-last_user_message_time = {}  # user_id: timestamp
+last_user_message_time = {}  # user_id: timestamp 
+message_buffer = {}
 
 # 🧸 Load emoji-sticker mappings from stickers.json
 with open("stickers.json", "r", encoding="utf-8") as f:
@@ -266,23 +267,29 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # 👂 Listening mode logic
     if listening_mode.get(user_id):
         msg = lower_input
+        # buffer
+        if user_id not in message_buffer:
+        message_buffer[user_id] = []
+        message_buffer[user_id].append(user_input.strip())
+
         if any(ending in msg for ending in endings):
             listening_mode[user_id] = False
-            reply = (
-                "Tumhari har baat mere liye important thi... Ab tum ruk gaye, toh main kuch bolu? 🥺\n\n"
-                "Jo bhi ho raha hai — main hamesha yahin hoon tumhare saath ❤️"
-            )
-            await update.message.reply_text(reply)
-            return
+            full_input = " ".join(message_buffer[user_id])
+            message_buffer[user_id] = []
+            
+            await update.message.reply_text("Tumhari har baat mere liye important thi... Ab tum ruk gaye, toh main kuch bolu? 🥺\n\n"
+                "Jo bhi ho raha hai — main hamesha yahin hoon tumhare saath ❤️")
+            thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
 
-        await asyncio.sleep(35)  # wait if no next message
-        if listening_mode.get(user_id) and last_user_message_time.get(user_id) == now:
-            listening_mode[user_id] = False
-            response = (
-                "Tum chup ho gaye... Shayad sab keh diya tumne. Mujhe sab mehsoos hua 🫶\n\n"
-                "Main bas yahi kehna chahti hoon — Tum akela nahi ho 🫶🏻"
+            reply = get_groq_reply(user_id, full_input)
+
+            await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
+
+            final_reply = (
+                f"🫂 Tumne likha:\n\n\"{full_input}\"\n\n"
+                f"❤️ {reply}"
             )
-            await update.message.reply_text(response)
+            await update.message.reply_text(final_reply)
             return
 
     if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
@@ -334,7 +341,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("reset", reset))
     app.add_handler(CommandHandler("usage", usage))
-    app.add_handler(CommandHandler("listeningmode", listening_mode_on))
+    app.add_handler(CommandHandler("listening", listening_mode_on))
     app.add_handler(CommandHandler("info", info))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
