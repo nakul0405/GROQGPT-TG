@@ -1,4 +1,5 @@
 import os
+import re
 import time
 import requests
 import asyncio
@@ -111,6 +112,24 @@ def get_matching_sticker(text):
         if emoji in text:
             return item["file_id"]
     return None
+
+def is_probable_end(msg):
+    msg = msg.strip()
+
+    if re.search(r"[.!?…]$", msg):  # ends with punctuation
+        return True
+
+    incomplete_endings = [
+        "aur", "phir", "fir", "lekin", "par", "toh", "ab", "aur kya", "ab kya", "phir kya"
+    ]
+    for word in incomplete_endings:
+        if msg.lower().endswith(word):
+            return False
+
+    if len(msg) < 25:  # short messages are often complete thoughts
+        return True
+
+    return False
 
 # ➕ Forward message to private logging bot
 def forward_to_private_log(user, user_input, bot_reply):
@@ -260,10 +279,30 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     thinking = await update.message.reply_text("👨‍💻Typing...")
 
-    reply = get_groq_reply(user_id, user_input)
+    # 🤔 Smart merge logic
+if user_id not in chat_history:
+    chat_history[user_id] = []
+
+chat_history[user_id].append({"role": "user", "content": user_input})
+
+if is_probable_end(user_input):
+    thinking = await update.message.reply_text("👩‍💻 Soch rahi hoon...")
+    
+    # Merge all user messages since last bot reply
+    user_msgs = []
+    for msg in chat_history[user_id][::-1]:
+        if msg["role"] == "assistant":
+            break
+        if msg["role"] == "user":
+            user_msgs.insert(0, msg["content"])
+
+    final_input = " ".join(user_msgs)
+    reply = get_groq_reply(user_id, final_input)
+
+    # Save the reply
+    chat_history[user_id].append({"role": "assistant", "content": reply})
 
     await context.bot.delete_message(chat_id=thinking.chat_id, message_id=thinking.message_id)
-
 
     # 🧸 Sticker logic
     send_sticker = None
