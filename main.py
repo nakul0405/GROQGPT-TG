@@ -176,7 +176,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     username = f"@{user.username}" if user.username else "NoUsername"
     time_now = datetime.now(ZoneInfo("Asia/Kolkata")).strftime("%d %b %Y, %I:%M %p")
 
-    thinking = await update.message.reply_text("👩🏻‍💻 Alexa is Typing...")
+    thinking = await update.message.reply_text("👩‍💻 Alexa is Typing...")
 
     reply = get_groq_reply(user_id, user_input)
 
