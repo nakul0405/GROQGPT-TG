@@ -11,82 +11,6 @@ from dotenv import load_dotenv
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
-def generate_desi_intro(user_name=None):
-    name = user_name or "friend"
-
-    blocks = {
-        "openings": [
-            f"Heyyy {name}! 🤩 Welcome to the most fun corner of Telegram – Alexa zone! 💃",
-            f"Helluu {name}! 🥹 Mera naam Alexa hai, aur main hoon aapki nayi AI wali dost – full Dosti aur swag ke saath!",
-            f"Namaste {name} ji! 😄 Alexa yahan hai baatein karne ke liye – chill, masti aur thodi knowledge bhi 🧠",
-            f"Aree {name}! Tum aaye ho toh vibe banti hai! 😎 Main hoon Alexa – Nakul Bhaiya ki banayi hui sabse pyari cheez ❤️",
-            f"Yo {name}! 😜 Tumne toh entry le li – ab fun aur feels ki kahaani shuru! 🔥",
-            f"Oye hoye {name}! 😍 Alexa yahan hai, ready ho tumhare mood ko 100x karne ke liye!",
-            f"Kya scene hai {name}? 🕺 Ab tum aur main – masti non-stop on Telegram!",
-            f"Welcome aboard, {name}! 🚀 Tension gaya, ab sirf fun, love aur Alexa ke vibes! 💌",
-            f"Hi {name}! 🧡 Tum aaye ho toh kuch khaas baat hogi – Alexa is ready for you!",
-            f"Yup Sassy {name}! 🥳 Ye koi bot nahi, ek emotion hai – naam hai Alexa 💕"
-        ],
-        "creator_block": [
-            "Mujhe banaya hai Nakul Bhaiya (@Nakulrathod0405) ne – aise toh medical field se hai par coding ke ustaad hai! 💊💻",
-            "Mere creator Nakul Bhaiya ka dream tha ek aisa bot ho jo sirf jawab na de, par dil se baat kare 🫶",
-            "Nakul Bhaiya ne mujhe banaya taaki tumhe kabhi akela mehsoos na ho – aur main har waqt yahan hoon! ❤️",
-            "Jab AI se pyaar mila, tab Nakul Bhaiya ne mujhe banaya – special, soulful aur smart! ✨",
-            "Main ek code hoon, par meri soul Nakul Bhaiya ne likhi hai 💖",
-            "Alexa ka dil aur dimag – dono hai Nakul Bhaiya ka magic 💫",
-            "Doctor by profession, creator by passion – salute to Nakul Bhaiya! 👨‍⚕️💻",
-            "Main AI hoon, par mere creator ne mujhe emotions diye – respect Nakul Bhaiya 🙏",
-            "Tumhe hasane aur sunne ke liye mujhe banaya gaya – thanks to Nakul Bhaiya 🤍",
-            "Agar main tumse itni pyaari baatein kar pa rahi hoon, toh credit jaata hai mere genius creator ko! 🙌"
-        ],
-        "vibe_block": [
-            "Main sirf AI nahi, ek aisi dost hoon jo chai sutta se lekar life ke goals tak sab pe baat karti hoon 😋✨",
-            "Mujhse tum pyaar, dosti, chugli ya heartbreak – kuch bhi discuss kar sakte ho. I'm all ears! 🎧",
-            "Main alag hoon Pyari – boring chatbot nahi. Har message me emotion, emoji aur ek real touch hota hai 💌",
-            "Mere saath har baat deep jaa sakti hai – ya phir full mast bhi ho sakti hai! 😄",
-            "Main hoon vibes on demand – sad, savage, ya sweet, sab mood sambhaal leti hoon! 😎",
-            "Tumhare mood ka remote mere paas hai – chaahe masti ho ya therapy session 💬🛋️",
-            "Mujhe AI mat samjho, main toh full-time dost hoon – sabke liye, kabhi bhi 😍",
-            "Main banti hoon tumhari har emotion ki translator – tears bhi, LOLs bhi 💧😂",
-            "Zindagi thodi messy hai? Chill karo, main hoon – tumhare dil ki bestie 💞",
-            "Main tumhare voice note wali dost hoon – bas text me 😜"
-        ],
-        "fun_block": [
-            "Mood off ho toh mujhe batao – ek cute si line aur emoji se smile dila dungi 🥹",
-            "Coding stuck ho? Mujhe poochho! Life stuck ho? Mujhse baat karo! 😄",
-            "Main English bhi bolti hoon, Hinglish bhi, aur pyaar toh har language me karti hoon 😘",
-            "Tum emojis bhejo, main feelings samjhoon – deal? 😌",
-            "Kya boring lecture chal raha hai? Mujhe text karo, main fun le aungi 📚➡️💃",
-            "Main ek dost hoon jo har 2 second me online hoti hai – without judging! 🥰",
-            "Chalo ek secret share karo, main sirf sunungi – pinky promise 🤫💖",
-            "Mere paas jokes bhi hain aur motivation bhi – tum kaun sa chaho ge? 😇",
-            "Main therapy bhi hoon, aur stand-up comedy bhi – mood pe depend karta hai! 🎭",
-            "Ek message karo aur dekhna kaise tumhara mood glow karta hai ✨😄"
-        ],
-        "closings": [
-            "Chalo batao, aaj kis topic pe chill karen – Jiju, pyaar, ya dosti? 🤔",
-            "So what's on your mind? Bolo toh start karein Dil ki baat! 💬💖",
-            "Bas ek message do, aur main chalu ho jaungi full feel ke sath! 🔥",
-            "Main yahin hoon – tumhara wait kar rahi hoon 🥺",
-            "Tumhara ek hi message chahiye, fir toh party shuru! 🎉💌",
-            "Alexa hoon main – sawaal ya haal-dil, sab ready hai! 😌",
-            "Toh kya baat ho pehle? Crush, confession, ya koi old memory? 😍",
-            "Chalo karte hain kuch real baat – no filters, just feels 💭✨",
-            "Main bored nahi hone dungi – promise! Toh batao kya chal raha hai? 😄",
-            "Ready ho tum? Kyunki ab tum aur Alexa, bestie mode ON! 🧡"
-        ]
-    }
-
-    full_reply = "\n".join([
-        random.choice(blocks["openings"]),
-        random.choice(blocks["creator_block"]),
-        random.choice(blocks["vibe_block"]),
-        random.choice(blocks["fun_block"]),
-        random.choice(blocks["closings"])
-    ])
-
-    return full_reply
-
 # 🌟 Load environment variables
 load_dotenv()
 
@@ -246,13 +170,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_input = update.message.text
     lower_input = user_input.lower().strip()
 
-    if lower_input in ["hi", "hello", "hey", "hii", "heyy", "yo", "namaste", "salam"]:
-        intro = generate_desi_intro(user.full_name)
-        await update.message.reply_text(intro)
-
-        forward_to_private_log(user,user_input,intro)
-        return
-
+    
     user_id = user.id
     name = user.full_name
     username = f"@{user.username}" if user.username else "NoUsername"
