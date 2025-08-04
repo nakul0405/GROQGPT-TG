@@ -114,7 +114,7 @@ def get_groq_reply(user_id, user_input):
     except Exception as e:
         print("❌ ERROR while calling Groq:")
         traceback.print_exc()
-        return "🥲 Alexa thoda confuse ho gayi yaar... thoda ruk ja, phir se try karo! 💔"
+        return "Thoda rukho mai vapas aati hu shyd se backend me kuch error aaraha hai wait karo please mai abhi thik karke aati hu 🥲 "
 
 # ---------------------- COMMANDS -----------------------
 
